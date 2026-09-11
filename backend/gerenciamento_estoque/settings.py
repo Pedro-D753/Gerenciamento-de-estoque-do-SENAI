@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 
 #Se o .env existir, ele será lido; caso contrário, o código seguirá normalmente.
-environ.Env.read_env(BASE_DIR / '.env')
+environ.Env.read_env(BASE_DIR / '../.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -36,7 +36,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 # env.bool converte a var de ambiente para um valor bool do Python.
 DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', 'http://localhost:8000', 'http://127.0.0.1:8000']
 
 
 # Application definition
