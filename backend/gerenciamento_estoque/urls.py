@@ -14,12 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path, include
 
 from drf_spectacular.views import SpectacularAPIView,SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
-    
+    path('api/', include('unidade.urls')),
 
     # schema.yml contém todas as informações de rotas do projeto para o Swagger/Redoc.
     # Caminho para o download do schema.yml.
