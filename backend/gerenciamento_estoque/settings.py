@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     #Importação das bibliotecas.
     'rest_framework',
     'drf_spectacular',
+
+    #Serviços dos sistemas
+    'unidade',
     
 ]
 
@@ -166,4 +169,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Projeto com objetivo de desenvolver um sistema web para o amorixafado do Senai DF. \n \n Programa feitor pela turma 3°DS - 2026',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+}
+
+#configuração especificas do rest_framework
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
