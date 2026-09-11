@@ -10,7 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
-#leitura do .env
+
+#Leitura do .env
 
 import environ
 
@@ -19,10 +20,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ativar as var de abiente par ao django
+# Ativa as var de ambiente para o Django.
 env = environ.Env(DEBUG=(bool, False))
 
-# caso o .env exista ele ler caso não ele segue o código normalmente 
+#Se o .env existir, ele será lido; caso contrário, o código seguirá normalmente.
 environ.Env.read_env(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
@@ -32,7 +33,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env.str("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# o env.bool -> server para já verificar é converte para o python a var de abiente
+# env.bool converte a var de ambiente para um valor bool do Python.
 DEBUG = env.bool("DEBUG", default=True)
 
 ALLOWED_HOSTS = []
@@ -48,8 +49,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    #importação da biblioteca: django reste
+    #Importação das bibliotecas.
     'rest_framework',
+    'drf_spectacular',
     
 ]
 
@@ -86,18 +88,18 @@ WSGI_APPLICATION = 'gerenciamento_estoque.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-#verificação de qual banco usar
+# Verifica qual banco de dados será usado.
 default : dict = None
 
 if DEBUG == True: 
-    #config sqlite
+    # Config do SQLite.
 
     default = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / "db.sqlite3",
     }
 else:
-    #config para conexação com o postgres
+    # Config do PostgreSQL.
     default = {
         'ENGINE': 'django.db.backends.postgresql' ,
         'NAME': env.str("DB_NAME"),
@@ -134,7 +136,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-#config já em ptbr
 LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'America/Sao_Paulo'
@@ -157,4 +158,12 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+#configuração de do cabeçalho do docs,redoc
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Api de Gerenciamento de Estoque do Senai',
+    'DESCRIPTION': 'Projeto com objetivo de desenvolver um sistema web para o amorixafado do Senai DF. \n \n Programa feitor pela turma 3°DS - 2026',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
