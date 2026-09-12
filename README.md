@@ -4,7 +4,7 @@
 
 # Descrição 
 
-O SGE(Sistema de Gerenciamento de Estoque) foi desenvolvido para resolve o problema da instuição a onde a mesma se encontrava no problema de terem varios conflitos entre as unidades da rede senai.
+O SGE(Sistema de Gerenciamento de Estoque) foi desenvolvido para resolve o problema da intuição onde ela se encontrava no problema de terem vários conflitos entre as unidades da rede SENAI. 
 
 # Tecnologias Utilizadas:
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
