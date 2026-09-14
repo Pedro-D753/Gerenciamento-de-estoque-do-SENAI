@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS `gerenciamento_estoque` ;
+CREATE DATABASE IF NOT EXISTS `gerenciamento_estoque` ;
 USE `gerenciamento_estoque` ;
 
 -- -----------------------------------------------------
@@ -113,17 +113,6 @@ CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`registro` (
     REFERENCES `gerenciamento_estoque`.`estoque` (`id`)   
 );
 
-
--- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`log`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`log` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `dt_acao` DATETIME NULL DEFAULT NOW(),
-  `table_sofre_acao` ENUM("user", "produto", "fornecedor", "unidade", "estoque", "registro") NOT NULL,
-  `acao` VARCHAR(100) NOT NULL,
-  `user_matricula` INT NOT NULL,
-);
 
 -- -----------------------------------------------------
 -- Table `gerenciamento_estoque`.`solicitacao`
