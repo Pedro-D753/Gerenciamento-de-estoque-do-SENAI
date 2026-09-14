@@ -38,18 +38,18 @@ Apos isso basta acessar http://localhost:8000/api/docs .
 ### Instrutor Orientador
 - [Karython Gomes](https://github.com/karython)
 
-### Desenvolvedores backend
+### Desenvolvedores Backend
 - [Arthur Nunes](https://github.com/NunesDevelloper)
 
 - [Fernando Thomaz](https://github.com/Fernando-Thomaz)
 
 - [João Vitor](https://github.com/joaovitor-afk)
 
-### Desenvovledores frontend
+### Desenvolvedores Frontend
 - [Guilherme Martins](https://github.com/Guimcv1)
 
 - [Lucas Octavio](https://github.com/LucasOctavio)
 
-### Lider Técnico
+### Lider Técnico e Documentação
 - [Pedro Domiense](https://github.com/Pedro-D753)
 
