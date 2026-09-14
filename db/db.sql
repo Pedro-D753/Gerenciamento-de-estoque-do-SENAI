@@ -1,166 +1,174 @@
-CREATE DATABASE IF NOT EXISTS `gerenciamento_estoque` ;
-USE `gerenciamento_estoque` ;
+-- Não há como fazer verificação se o banco existe no postgres
+CREATE DATABASE gerenciamento_estoque;
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`unidade`
+-- Table unidade
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`unidade` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(50) NOT NULL,
+CREATE TABLE IF NOT EXISTS unidade(
+  -- SERIAL é um int com autocomplete já inbutido para o postgres 
+  id SERIAL PRIMARY KEY NOT NULL ,
+  nome VARCHAR(50) NOT NULL
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`categoria`
+-- Table categoria
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`categoria` (
-  `id` INT PRIMARY KEY NOT NULL,
-  `nome` VARCHAR(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS categoria (
+  id SERIAL PRIMARY KEY NOT NULL,
+  nome VARCHAR(255) NOT NULL
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`departamento`
+-- Table departamento
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`departamento` (
-  `id` INT PRIMARY KEY NOT NULL,
-  `nome` VARCHAR(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS departamento (
+  id SERIAL PRIMARY KEY NOT NULL,
+  nome VARCHAR(255) NOT NULL
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`produto`
+-- Table produto
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`produto` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(255) NOT NULL,
-  `descricao` TEXT NULL,
-  `unidade_medida` VARCHAR(50) NOT NULL,
-  `codigo_barra` INT NOT NULL,
-  `categoria_id` INT NOT NULL,
-  `departamento_id` INT NOT NULL,
+CREATE TABLE IF NOT EXISTS produto (
+  id SERIAL PRIMARY KEY NOT NULL,
+  nome VARCHAR(255) NOT NULL,
+  descricao TEXT NULL,
+  unidade_medida VARCHAR(50) NOT NULL,
+  codigo_barra INT NOT NULL,
+  categoria_id INT NOT NULL,
+  departamento_id INT NOT NULL,
  
+  CONSTRAINT fk_produto_categoria
+    FOREIGN KEY (categoria_id)
+    REFERENCES categoria (id),
  
-  CONSTRAINT `fk_produto_categoria`
-    FOREIGN KEY (`categoria_id`)
-    REFERENCES `gerenciamento_estoque`.`categoria` (`id`),
- 
-  CONSTRAINT `fk_produto_departamento`
-    FOREIGN KEY (`departamento_id`)
-    REFERENCES `gerenciamento_estoque`.`departamento` (`id`)
+  CONSTRAINT fk_produto_departamento
+    FOREIGN KEY (departamento_id)
+    REFERENCES departamento (id)
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`fornecedor`
+-- Table fornecedor
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`fornecedor` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(255) NOT NULL,
-  `cpnj` INT NOT NULL UNIQUE,
-  `contato` VARCHAR(120) NOT NULL,
-  `is_ativo` TINYINT NOT NULL DEFAULT 1,
+CREATE TABLE IF NOT EXISTS fornecedor (
+  id SERIAL PRIMARY KEY NOT NULL,
+  nome VARCHAR(255) NOT NULL,
+  cnpj INT NOT NULL UNIQUE,
+  contato VARCHAR(120) NOT NULL,
+  is_ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`user`
+-- Table user
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`user` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `matricula` INT NOT NULL,
-  `is_admin` TINYINT NOT NULL DEFAULT 0,
-  `is_ativo` TINYINT NOT NULL DEFAULT 1,
-  `nome` VARCHAR(100) NOT NULL,
-  `unidade_id` INT NOT NULL,
+CREATE TABLE IF NOT EXISTS "user" (
+  id SERIAL PRIMARY KEY NOT NULL ,
+  matricula INT NOT NULL,
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  is_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  nome VARCHAR(100) NOT NULL,
+  unidade_id INT NOT NULL,
 
-  CONSTRAINT `fk_user_unidade`
-    FOREIGN KEY (`unidade_id`)
-    REFERENCES `gerenciamento_estoque`.`unidade` (`id`)
+  CONSTRAINT fk_user_unidade
+    FOREIGN KEY (unidade_id)
+    REFERENCES unidade (id)
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`estoque`
+-- Table estoque
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`estoque` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `produto_id` INT NOT NULL,
-  `unidade_id` INT NOT NULL,
-  `qtd` INT NOT NULL,
-  `qtd_minima` INT NOT NULL,
-  `preco_unitario` DECIMAL(10,2) NOT NULL,
-  `is_ativo` TINYINT NOT NULL DEFAULT 1,
-  `localidade` VARCHAR(255) NULL,
-  `dt_validade` DATE NULL,
+CREATE TABLE IF NOT EXISTS estoque (
+  id SERIAL PRIMARY KEY NOT NULL ,
+  produto_id INT NOT NULL,
+  unidade_id INT NOT NULL,
+  qtd INT NOT NULL,
+  qtd_minima INT NOT NULL,
+  preco_unitario DECIMAL(10,2) NOT NULL,
+  is_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  localidade VARCHAR(255) NULL,
+  dt_validade DATE NULL,
 
-  CONSTRAINT `fk_estoque_produto`
-    FOREIGN KEY (`produto_id`)
-    REFERENCES `gerenciamento_estoque`.`produto` (`id`),
+  CONSTRAINT fk_estoque_produto
+    FOREIGN KEY (produto_id)
+    REFERENCES produto (id),
 
-  CONSTRAINT `fk_estoque_unidade`
-    FOREIGN KEY (`unidade_id`)
-    REFERENCES `gerenciamento_estoque`.`unidade` (`id`)   
+  CONSTRAINT fk_estoque_unidade
+    FOREIGN KEY (unidade_id)
+    REFERENCES unidade (id)   
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`registro`
+-- Table registro
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`registro` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `id_estoque` INT NOT NULL,
-  `is_saida` TINYINT NOT NULL DEFAULT 0,
-  `descricao` TEXT NULL,
-  `qtd` INT NOT NULL,
-  `dt` DATETIME NOT NULL,
+CREATE TABLE IF NOT EXISTS registro (
+  id SERIAL PRIMARY KEY NOT NULL ,
+  id_estoque INT  NOT NULL,
+  is_saida BOOLEAN NOT NULL DEFAULT FALSE,
+  descricao TEXT NULL,
+  qtd INT NOT NULL,
+  dt TIMESTAMP NOT NULL,
 
-  CONSTRAINT `fk_registro_estoque1`
-    FOREIGN KEY (`id_estoque`)
-    REFERENCES `gerenciamento_estoque`.`estoque` (`id`)   
+  CONSTRAINT fk_registro_estoque1
+    FOREIGN KEY (id_estoque)
+    REFERENCES estoque (id)   
 );
 
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`solicitacao`
+-- Table solicitacao
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`solicitacao` (
-  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `is_aceito` TINYINT NOT NULL DEFAULT 1,
-  `descriacao` TEXT NULL,
-  `tipo` ENUM("SA", "ST") NOT NULL DEFAULT 'SA',
-  `qtd_acao` INT NOT NULL,
-  `dt_acao` DATETIME NOT NULL DEFAULT now(),
+
+-- -----------------------------------------------------
+-- ENUM's
+-- -----------------------------------------------------
+CREATE TYPE solicitacao_tipo AS ENUM('SA','ST');
+
+CREATE TYPE solicitacao_estado AS ENUM('Cancelada', 'EmAndamento', 'Concluida');
+
+CREATE TABLE IF NOT EXISTS solicitacao (
+  id SERIAL PRIMARY KEY NOT NULL,
+  is_aceito BOOLEAN NOT NULL DEFAULT TRUE,
+  descriacao TEXT NULL,
+  tipo solicitacao_tipo NOT NULL DEFAULT 'SA',
+  qtd_acao INT NOT NULL,
+  dt_acao TIMESTAMP NOT NULL DEFAULT now(),
+  estado solicitacao_estado
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`estoque_solicitacao`
+-- Table estoque_solicitacao
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`estoque_solicitacao` (
-  `id` INT PRIMARY KEY NOT NULL,
-  `id_estoque` INT NOT NULL,
-  `id_solicitacao` INT NOT NULL,
+CREATE TABLE IF NOT EXISTS estoque_solicitacao (
+  id SERIAL PRIMARY KEY NOT NULL,
+  id_estoque INT NOT NULL,
+  id_solicitacao INT NOT NULL,
 
-
-  CONSTRAINT `fk_estoque_has_solicitacao_estoque`
-    FOREIGN KEY (`id_estoque`)
-    REFERENCES `gerenciamento_estoque`.`estoque` (`id`),
+  CONSTRAINT fk_estoque_has_solicitacao_estoque
+    FOREIGN KEY (id_estoque)
+    REFERENCES estoque (id),
     
-  CONSTRAINT `fk_estoque_has_solicitacao_solicitacao`
-    FOREIGN KEY (`id_solicitacao`)
-    REFERENCES `gerenciamento_estoque`.`solicitacao` (`id`)   
+  CONSTRAINT fk_estoque_has_solicitacao_solicitacao
+    FOREIGN KEY (id_solicitacao)
+    REFERENCES solicitacao (id)   
 );
 
 -- -----------------------------------------------------
--- Table `gerenciamento_estoque`.`contrato`
+-- Table contrato
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gerenciamento_estoque`.`contrato` (
-  `id` INT PRIMARY KEY NOT NULL,
-  `id_registro` INT NOT NULL,
-  `id_fornecedor` INT NOT NULL,
-  `dt_inicio` DATE NOT NULL,
-  `dt_final` DATE NOT NULL,
+CREATE TABLE IF NOT EXISTS contrato (
+  id SERIAL PRIMARY KEY NOT NULL,
+  id_registro INT NOT NULL,
+  id_fornecedor INT NOT NULL,
+  dt_inicio DATE NOT NULL,
+  dt_final DATE NOT NULL,
 
-  CONSTRAINT `fk_registro_has_fornecedor_registro`
-    FOREIGN KEY (`id_registro`)
-    REFERENCES `gerenciamento_estoque`.`registro` (`id`),
+  CONSTRAINT fk_registro_has_fornecedor_registro
+    FOREIGN KEY (id_registro)
+    REFERENCES registro (id),
 
-  CONSTRAINT `fk_registro_has_fornecedor_fornecedor`
-    FOREIGN KEY (`id_fornecedor`)
-    REFERENCES `gerenciamento_estoque`.`fornecedor` (`id`)
+  CONSTRAINT fk_registro_has_fornecedor_fornecedor
+    FOREIGN KEY (id_fornecedor)
+    REFERENCES fornecedor (id)
 );
 
 
