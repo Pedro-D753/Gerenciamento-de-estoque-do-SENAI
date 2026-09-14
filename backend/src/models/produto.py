@@ -1,6 +1,5 @@
-from sqlalchemy import Column, String, Integer, Numeric, Date, ForeignKey, Boolean, Text
+from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from ..db.conection import Base
-from datetime import date
 
 class ProdutoModel(Base):
     __tablename__ = "produto"

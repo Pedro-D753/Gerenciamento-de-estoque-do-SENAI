@@ -1,25 +1,25 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Text
+from sqlalchemy import Column, DateTime, Integer, ForeignKey, Text, Boolean
+from datetime import datetime
+
 from ..db.conection import Base
 
-class ProdutoModel(Base):
-    __tablename__ = "produto"
+class RegistroModel(Base):
+    __tablename__ = "registro"
 
     id = Column(Integer, primary_key=True)
-    nome = Column(String(255), nullable=False)
+    is_saida = Column(Boolean, nullable=False, default=0)
     descricao = Column(Text, nullable=True)
-    unidade_medida = Column(String(50), nullable=False)
-    codigo_barra = Column(Integer, nullable=False)
+    qtd = Column(Integer, nullable=False)
+    dt_registro = Column(DateTime, nullable=False)
 
-    categoria_id = Column(Integer, ForeignKey("categoria.id"), nullable=False)
-    departamento_id = Column(Integer, ForeignKey("departamento.id"), nullable=False)
+    estoque_id = Column(Integer, ForeignKey("categoria.id"), nullable=False)
     
 
-    def __init__(self, nome: str, descricao: str, unidade_medida: str, codigo_barra: str, categoria: int, departamento: int) -> None:
-        self.nome = nome
-        self.descricao = descricao 
-        self.unidade_medida = unidade_medida
-        self.codigo_barra = codigo_barra
+    def __init__(self, descricao : str, qtd : int, dt_registro : datetime, estoque: int, is_saida: bool = False) -> None:
+        self.is_saida =  is_saida
+        self.descricao = descricao
+        self.qtd = qtd
+        self.dt_registro = dt_registro
 
-        self.categoria_id = categoria
-        self.departamento_id = departamento
+        self.estoque_id = estoque
     

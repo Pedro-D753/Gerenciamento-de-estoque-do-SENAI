@@ -1,8 +1,19 @@
-from sqlalchemy import Column, Integer, Boolean, Text
-from sqlalchemy import Enum
+from sqlalchemy import Column, Integer, Boolean, Text, Enum
+from datetime import datetime
+import enum
 
 from ..db.conection import Base
-from datetime import datetime
+
+class SolicitacaoEstadoEnum(enum.Enum):
+    #SA = solicitação normal
+    SA = "SA"
+    #ST = solicitação de transferencia entre unidades
+    ST = "ST"
+
+class SolicitacaoTipoEnum(enum.Enum):
+    Cancelada = "Cancelada" 
+    EmAndamento = "EmAndamento"
+    Concluida = "Concluida"
 
 class SolicitacaoModel(Base):
     __tablename__ = "solicitacao"
@@ -10,19 +21,17 @@ class SolicitacaoModel(Base):
     id = Column(Integer, primary_key=True)
     is_aceito = Column(Boolean, nullable=False)
     descricao = Column(Text, nullable=True)
-    tipo = Column(Enum, nullable=False)
+    tipo = Column(Enum(SolicitacaoTipoEnum), nullable=False)
+    estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)
     dt_acao = Column(Integer, nullable=False)
-    estado = Column(Enum,)
 
+    def __init__(self, is_aceito: bool, descricao: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
+        self.is_aceito = is_aceito
+        self.descricao = descricao
+        self.tipo = tipo
+        self.estado = estado
+        self.qtd_acao = qtd_acao
+        self.dt_acao = dt_acao
     
-
-    def __init__(self, is_aceito: bool, descricao: str, qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
-        self.nome = nome
-        self.descricao = descricao 
-        self.unidade_medida = unidade_medida
-        self.codigo_barra = codigo_barra
-
-        self.categoria_id = categoria
-        self.departamento_id = departamento
-    
+  
