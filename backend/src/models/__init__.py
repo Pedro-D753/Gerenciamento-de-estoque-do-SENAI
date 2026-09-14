@@ -1,6 +1,6 @@
 # Configuração que já garante que as criações de todas tabelas
 
-from ..db import Base #, engine
+from ..db import Base, engine
 from .user import UserModel
 from .unidade import UnidadeModel
 from .solicitacao import SolicitacaoEstadoEnum, SolicitacaoTipoEnum, SolicitacaoModel
@@ -17,4 +17,4 @@ __all__ = ["UserModel", "UnidadeModel", "SolicitacaoEstadoEnum", "SolicitacaoTip
            "RegistroModel", "ProdutoModel", "FornecedorModel", "EstoqueModel", "EstoqueSolicitacaoModel",
            "DepartamentoModel", "ContradoModel", "CategoriaModel"]
 
-#Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
