@@ -33,8 +33,9 @@ CREATE TABLE IF NOT EXISTS produto (
   id SERIAL PRIMARY KEY NOT NULL,
   nome VARCHAR(255) NOT NULL,
   descricao TEXT NULL,
+  img_hash TEXT NOT NULL,
   unidade_medida VARCHAR(50) NOT NULL,
-  codigo_barra INT NOT NULL,
+  codigo_barra TEXT NOT NULL,
   categoria_id INT NOT NULL,
   departamento_id INT NOT NULL,
  
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   is_admin BOOLEAN NOT NULL DEFAULT FALSE,
   is_ativo BOOLEAN NOT NULL DEFAULT TRUE,
   nome VARCHAR(100) NOT NULL,
+  senha VARCHAR(255) NOT NULL,
   unidade_id INT NOT NULL,
 
   CONSTRAINT fk_user_unidade
@@ -128,7 +130,9 @@ CREATE TYPE solicitacao_estado AS ENUM('Cancelada', 'EmAndamento', 'Concluida');
 CREATE TABLE IF NOT EXISTS solicitacao (
   id SERIAL PRIMARY KEY NOT NULL,
   is_aceito BOOLEAN NOT NULL DEFAULT TRUE,
-  descriacao TEXT NULL,
+  obs_solicita TEXT NULL,
+  obs_recusa TEXT NULL,
+  email_solicitador_hash TEXT NOT NULL
   tipo solicitacao_tipo NOT NULL DEFAULT 'SA',
   qtd_acao INT NOT NULL,
   dt_acao TIMESTAMP NOT NULL DEFAULT now(),
