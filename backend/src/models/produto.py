@@ -7,7 +7,8 @@ class ProdutoModel(Base):
     id = Column(Integer, primary_key=True)
     nome = Column(String(255), nullable=False)
     descricao = Column(Text, nullable=True)
-    unidade_medida = Column(String(50), nullable=False)
+    img_hash = Column(Text, nullable=False)
+    unidade_medida = Column(Text, nullable=False)
     codigo_barra = Column(Integer, nullable=False)
 
     categoria_id = Column(Integer, ForeignKey("categoria.id"), nullable=False)

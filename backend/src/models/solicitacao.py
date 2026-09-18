@@ -20,7 +20,8 @@ class SolicitacaoModel(Base):
 
     id = Column(Integer, primary_key=True)
     is_aceito = Column(Boolean, nullable=False)
-    descricao = Column(Text, nullable=True)
+    obs_solicita = Column(Text, nullable=True)
+    obs_recusa = Column(Text, nullable=True)
     tipo = Column(Enum(SolicitacaoTipoEnum), nullable=False)
     estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)

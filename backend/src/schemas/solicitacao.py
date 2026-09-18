@@ -4,7 +4,8 @@ from enum import Enum
 
 class SolicitacaoSchema(BaseModel):
     is_aceito: bool
-    descricao: Optional[str]
+    obs_solicita: Optional[str]
+    obs_recusa: Optional[str]
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
@@ -13,7 +14,8 @@ class SolicitacaoSchema(BaseModel):
 class SolicitacaoReadSchema(BaseModel):
     id: int
     is_aceito: bool
-    descricao: Optional[str]
+    obs_solicita: Optional[str]
+    obs_recusa: Optional[str]
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
@@ -21,7 +23,8 @@ class SolicitacaoReadSchema(BaseModel):
 
 class SolicitacaoUpdateSchema(BaseModel):
     is_aceito: Optional[bool]
-    descricao: Optional[str]
+    obs_solicita: Optional[str]
+    obs_recusa: Optional[str]
     tipo: Optional[TipoEnum]
     estado: Optional[EstadoEnum]
     qtd_acao: Optional[int]

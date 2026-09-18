@@ -3,6 +3,7 @@ from typing import Optional
 
 class UserSchema(BaseModel):
     nome: str
+    senha: str
     matricula: int
     is_admin: bool
     is_ativo: bool
@@ -12,6 +13,7 @@ class UserSchema(BaseModel):
 class UserReadSchema(BaseModel):
     id: int
     nome: str
+    senha: str
     matricula: int
     is_admin: bool
     is_ativo: bool
@@ -21,6 +23,7 @@ class UserReadSchema(BaseModel):
 class UserUpdateSchema(BaseModel):
     nome: Optional[str]
     matricula: Optional[int]
+    senha: Optional[str]
     is_admin: Optional[bool]
     is_ativo: Optional[bool]
 

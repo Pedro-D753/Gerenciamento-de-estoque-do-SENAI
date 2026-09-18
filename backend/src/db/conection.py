@@ -13,10 +13,3 @@ Base = declarative_base()
 # Cria a sessão para manipular a db
 Session = sessionmaker(bind=engine)
 
-# Garante que, ao usar a ORM como dependência, a sessão será fechada automaticamente
-def get_sesion():
-    session = Session()
-    try:
-        yield session
-    finally:
-        session.close()
