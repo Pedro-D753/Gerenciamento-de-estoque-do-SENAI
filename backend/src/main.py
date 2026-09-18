@@ -6,7 +6,8 @@ app = FastAPI(
     title="Api para o Sistema de Gerenciamento de Estoque do SENAI",
     description="Esse sistema foi desenvolvido pelos alunos do 3º ano do Ensino Médio, \n  \
     no itinerário de Desenvolvimento de Sistemas de 2026, com o objetivo de gerenciar o estoque da instituição. \n \
-    \nPara Mais informação acesse a [Github do projeto](https://github.com/Pedro-D753/Gerenciamento-de-estoque-do-SENAI)."
+    \nPara Mais informação acesse a [Github do projeto](https://github.com/Pedro-D753/Gerenciamento-de-estoque-do-SENAI).",
+    version="1.0.0"
 )
 
 # Configuração de CORS

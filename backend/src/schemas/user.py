@@ -1,0 +1,27 @@
+from pydantic import BaseModel
+from typing import Optional
+
+class UserSchema(BaseModel):
+    nome: str
+    matricula: int
+    is_admin: bool
+    is_ativo: bool
+
+    unidade_id: int
+
+class UserReadSchema(BaseModel):
+    id: int
+    nome: str
+    matricula: int
+    is_admin: bool
+    is_ativo: bool
+
+    unidade_id: int
+
+class UserUpdateSchema(BaseModel):
+    nome: Optional[str]
+    matricula: Optional[int]
+    is_admin: Optional[bool]
+    is_ativo: Optional[bool]
+
+    unidade_id: Optional[int]
