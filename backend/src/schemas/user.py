@@ -10,6 +10,10 @@ class UserSchema(BaseModel):
 
     unidade_id: int
 
+class UserLoginSchema(BaseModel):
+    matricula: int
+    senha: str
+
 class UserReadSchema(BaseModel):
     id: int
     nome: str

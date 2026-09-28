@@ -21,10 +21,10 @@ DB_USER = getenv("DB_USER", None)
 DB_NAME = getenv("DB_NAME", None)
 DB_HOST = getenv("DB_HOST", "db")
 
-if DB_USER.strip() == True or DB_USER == None: 
+if DB_USER != None: 
     raise EnvVaulesErros("O campo \"DB_USER\" não pode ser null(None) ou ser apenas espaços.")
 
-if DB_NAME.strip() == True or DB_NAME == None: 
+if DB_NAME != None: 
     raise EnvVaulesErros("O campo \"DB_NAME\" não pode ser null(None) ou ser apenas espaços.")
 
 try:
@@ -35,7 +35,7 @@ except:
 
 #region Config do JWT
 SECRET_KEY = getenv("SECRET_KEY", None)
-if SECRET_KEY.strip() == True or SECRET_KEY == None:
+if SECRET_KEY != None:
     raise EnvVaulesErros("O campo \"SECRET_KEY\" não pode ser null(None) ou ser apenas espaços.")
 
 #Poder deichar o padrão sha256 é não deichar como var de ambiente. Ou não?
@@ -43,7 +43,7 @@ ALG = "HS256"
 
 '''
 ALGORITHM = getenv("ALGORIYHM", None)
-if ALGORITHM.strip() == True or ALGORITHM == None:
+if ALGORITHM.strip() == "" or ALGORITHM == None:
     raise EnvVaulesErros("O campo \"ALGORITHM\" não pode ser null(None) ou ser apenas espaços.")
 '''
 

@@ -1,11 +1,11 @@
 from jose import jwt, JWTError
 from .services.erros import ErroInesperado, ErroJwtInvalido
-from .config import SECRETES_KEY, ALG
+from .config import SECRET_KEY, ALG
 from .db.conection import Session
 
 def verificar_jwt(token: str) -> tuple[int, bool]:
     try:
-        dict_info = jwt.decode(token, str(SECRETES_KEY), str(ALG))
+        dict_info = jwt.decode(token, str(SECRET_KEY), str(ALG))
         id = int(dict_info['sub'])
         is_admin = bool(dict_info["is_admin"])
 

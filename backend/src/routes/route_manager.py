@@ -1,4 +1,5 @@
-from .produto import router as produto_router #import de outras rotas
+# from .produto import router as produto_router #import de outras rotas
+from .categoria import router as categoria_router 
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
 from ..schemas.geral import Reposne500
@@ -18,4 +19,4 @@ async def home_to_doc():
     #Toda vez que o usuário acessar essa rota, ele será redirecionado automaticamente para /docs.
     return RedirectResponse(url='/docs')
 
-route_manager.include_router(produto_router) 
+route_manager.include_router(categoria_router) 

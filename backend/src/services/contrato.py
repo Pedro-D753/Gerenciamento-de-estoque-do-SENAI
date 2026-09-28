@@ -1,13 +1,13 @@
 from ..models.contratos import ContratoModel
 from .erros import ErroInesperado, ErroContratoExiste, ErroContratoNaoEncontrado
 
-# FUNCAO CRIAR CONTRATO
+#region FUNCAO CRIAR CONTRATO
 def criar_contrato(session, dados):
     # verifica se existe esse contrato
     existe = session.query(ContratoModel).filter(ContratoModel.dt_inicio == dados.dt_inicio,
-    ContratoModel.dt_final == dados.dt_final,
-    ContratoModel.registro_id == dados.registro_id,
-    ContratoModel.fornecedor_id == dados.fornecedor_id)
+                                                ContratoModel.dt_final == dados.dt_final,
+                                                ContratoModel.registro_id == dados.registro_id,
+                                                ContratoModel.fornecedor_id == dados.fornecedor_id).first()
     if existe:
         raise ErroContratoExiste(session)
 
@@ -22,14 +22,18 @@ def criar_contrato(session, dados):
         return {"mensagem":"O contrato foi criado com sucesso!"}
     
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
+#endregion
 
-# FUNCAO LER CONTRATO
+#region FUNCAO LER CONTRATO
 def ler_contrato(session):
     return session.query(ContratoModel).all()
 
-# FUNCAO ATUALIZAR CONTRATO
+def ler_contrato(session, id):
+    return session.query(ContratoModel).filter(ContratoModel.id == id).first()
+#endregion
+
+#region FUNCAO ATUALIZAR CONTRATO
 def atualizar_contrato(session, dados_old, dados_new):
     # verifica se existe essas informacoes no banco
     existe_old = session.query(ContratoModel).filter(ContratoModel.dt_final == dados_old.dt_final,
@@ -62,12 +66,12 @@ def atualizar_contrato(session, dados_old, dados_new):
         return {"mensagem":"O contrato foi atualizado!"}
 
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
-    
-# FUNCAO EXCLUIR CONTRATO
+#endregion
+
+#region FUNCAO EXCLUIR CONTRATO
 def excluir_contrato(session, id):
-    # verificar se existe esse usuario
+    # verificar se existe esse contrato
     existe = session.query(ContratoModel).filter(ContratoModel.id == id).first()
     if existe:
         raise ErroContratoExiste(session)
@@ -81,5 +85,5 @@ def excluir_contrato(session, id):
         return {"mensagem":"Contrato excluido com sucesso!"}
     
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
+#endregion

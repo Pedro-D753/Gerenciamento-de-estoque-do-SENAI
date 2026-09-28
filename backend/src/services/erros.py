@@ -182,3 +182,20 @@ class ErroDepartamentoExiste(HTTPException):
         )
 #endregion
 
+#region registro
+class ErroRegistroNaoEncontrado(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=404,
+            detail="Essa registro não foi encontrado."
+        )
+
+class ErroRegistroExiste(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=409,
+            detail="Essa registro já existe."
+        )
+#endregion

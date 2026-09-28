@@ -27,9 +27,10 @@ class SolicitacaoModel(Base):
     qtd_acao = Column(Integer, nullable=False)
     dt_acao = Column(Integer, nullable=False)
 
-    def __init__(self, is_aceito: bool, descricao: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
+    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
         self.is_aceito = is_aceito
-        self.descricao = descricao
+        self.obs_solicita = obs_solicita
+        self.obs_recusa = obs_recusa
         self.tipo = tipo
         self.estado = estado
         self.qtd_acao = qtd_acao

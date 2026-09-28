@@ -15,9 +15,10 @@ class ProdutoModel(Base):
     departamento_id = Column(Integer, ForeignKey("departamento.id"), nullable=False)
     
 
-    def __init__(self, nome: str, descricao: str, unidade_medida: str, codigo_barra: str, categoria: int, departamento: int) -> None:
+    def __init__(self, nome: str, descricao: str, img_hash: str, unidade_medida: str, codigo_barra: str, categoria: int, departamento: int) -> None:
         self.nome = nome
         self.descricao = descricao 
+        self.img_hash = img_hash
         self.unidade_medida = unidade_medida
         self.codigo_barra = codigo_barra
 

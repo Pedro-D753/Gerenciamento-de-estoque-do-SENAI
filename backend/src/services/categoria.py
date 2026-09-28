@@ -1,7 +1,7 @@
 from ..models.categoria import CategoriaModel
 from .erros import ErroInesperado, ErroCategoriaExiste, ErroCategoriaNaoEncontrado
 
-# FUNCAO CRIAR CATEGORIA
+#region FUNCAO CRIAR CATEGORIA
 def criar_categoria(session, dados):
     # verifica se essa categoria já existe
     existe = session.query(CategoriaModel).filter(CategoriaModel.nome == dados.nome).first()
@@ -20,14 +20,18 @@ def criar_categoria(session, dados):
         return {"mensagem":"Categoria criada com sucesso!"}
     
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
+#endregion
 
-# FUNCAO LER CATEGORIA
+#region FUNCAO LER CATEGORIA
 def ler_categoria(session):
     return session.query(CategoriaModel).all()
 
-# FUNCAO ATUALIZAR CATEGORIA
+def ler_categoria(session, id):
+    return session.query(CategoriaModel).filter(CategoriaModel.id == id).first()
+#endregion
+
+#region FUNCAO ATUALIZAR CATEGORIA
 def atualizar_categoria(session, dados_old, dados_new):
     # verifica se existe essas informacoes no banco
     existe_old = session.query(CategoriaModel).filter(CategoriaModel.nome == dados_old.nome).first()
@@ -53,10 +57,10 @@ def atualizar_categoria(session, dados_old, dados_new):
         return {"mensagem":"Categoria atualizada com sucesso!"}
 
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
-        
-# FUNCAO EXCLUIR CATEGORIA
+#endregion
+       
+#region FUNCAO EXCLUIR CATEGORIA
 def excluir_categoria(session, id):
     # verifica se existe essa categoria no banco
     existe = session.query(CategoriaModel).filter(CategoriaModel.id == id).first()
@@ -72,5 +76,5 @@ def excluir_categoria(session, id):
         return {"mensagem":"A categoria foi excluida com sucesso!"}
     
     except Exception as e:
-        session.rollback()
         raise ErroInesperado(e, session)
+#endregion
