@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function HistoricoSolicitacao() {
   const navigate = useNavigate();
@@ -9,70 +10,20 @@ export default function HistoricoSolicitacao() {
   const [selectedUnidade, setSelectedUnidade] = useState('Todas');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
-  const [expandedRowId, setExpandedRowId] = useState(1); // Row 1 expanded by default like screenshot 2
+  const [expandedRowId, setExpandedRowId] = useState(1);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const historyItems = [
-    {
-      id: 1,
-      codigo: '0010151110',
-      item: 'Pendrive',
-      dataReserva: '23/04/2026',
-      quantidade: 12,
-      unidade: 'Taguatinga',
-      solicitante: 'Andre Felipe Maciel',
-      dataRecebimento: '28/04/2026',
-      dataSolicitacao: '20/04/2026',
-      dataRetirada: '25/04/2026',
-      ped: 'PED-9021',
-      saCode: 'S.A - Ofx1586as5',
-      image: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=150&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 4,
-      codigo: '5950241414',
-      item: 'Azulejo Azul',
-      dataReserva: '29/12/2026',
-      quantidade: 580,
-      unidade: 'Sobradinho',
-      solicitante: 'Carlos Eduardo',
-      dataRecebimento: '30/12/2026',
-      dataSolicitacao: '28/12/2026',
-      dataRetirada: '29/12/2026',
-      ped: 'PED-4412',
-      saCode: 'S.A - Ofx9941az2',
-      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=150&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 5,
-      codigo: '00004984',
-      item: 'Monitor LG 24 Polegadas',
-      dataReserva: '23/01/2025',
-      quantidade: 4,
-      unidade: 'Gama',
-      solicitante: 'Mariana Souza',
-      dataRecebimento: '25/01/2025',
-      dataSolicitacao: '22/01/2025',
-      dataRetirada: '24/01/2025',
-      ped: 'PED-1022',
-      saCode: 'S.A - Ofx3311lg4',
-      image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=150&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 6,
-      codigo: '564408405',
-      item: 'Teclado',
-      dataReserva: '01/07/2026',
-      quantidade: 92,
-      unidade: 'Gama',
-      solicitante: 'Lucas Otavio',
-      dataRecebimento: '03/07/2026',
-      dataSolicitacao: '30/06/2026',
-      dataRetirada: '02/07/2026',
-      ped: 'PED-8812',
-      saCode: 'S.A - Ofx7712tc9',
-      image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=150&auto=format&fit=crop&q=80'
+  // Fetch history items from API on mount
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await api.getHistoricoSolicitacoes();
+      setHistoryItems(data);
+      setLoading(false);
     }
-  ];
+    loadData();
+  }, []);
 
   const filteredHistory = historyItems.filter(item => {
     const query = searchTerm.toLowerCase().trim();

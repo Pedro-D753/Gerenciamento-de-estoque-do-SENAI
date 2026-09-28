@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Check } from 'lucide-react';
-import { initialItems } from '../data/items.js';
+import { api } from '../services/api.js';
 
 export default function Solicitacao() {
   const navigate = useNavigate();
@@ -11,7 +11,9 @@ export default function Solicitacao() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
   const [showSolicitacaoModal, setShowSolicitacaoModal] = useState(false);
-  const [selectedRowId, setSelectedRowId] = useState(1); // Default Pendrive checked as in screenshot 1
+  const [selectedRowId, setSelectedRowId] = useState(1);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Modal Form State
   const [modalItem, setModalItem] = useState('Pendrive');
@@ -24,7 +26,16 @@ export default function Solicitacao() {
   const [modalMensagem, setModalMensagem] = useState('');
   const [successToast, setSuccessToast] = useState(false);
 
-  const [items] = useState(initialItems);
+  // Fetch items from API on component mount
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await api.getItems();
+      setItems(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
   // Filter items based on search query (Checking ID, Codigo U.F, Item, Quantidade, Reserva, Unidade)
   const filteredItems = items.filter(item => {
@@ -57,8 +68,18 @@ export default function Solicitacao() {
     setShowSolicitacaoModal(true);
   };
 
-  const handleEnviarSolicitacao = (e) => {
+  const handleEnviarSolicitacao = async (e) => {
     e.preventDefault();
+    await api.createSolicitacao({
+      item: modalItem,
+      codigo: modalCodigo,
+      quantidade: modalQuantidade,
+      medida: modalMedida,
+      unidade: modalUnidade,
+      solicitante: modalSolicitante,
+      devolucao: modalDevolucao,
+      mensagem: modalMensagem
+    });
     setShowSolicitacaoModal(false);
     setSuccessToast(true);
     setTimeout(() => setSuccessToast(false), 4000);

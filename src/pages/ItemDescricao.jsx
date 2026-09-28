@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Check } from 'lucide-react';
-import { initialItems } from '../data/items.js';
+import { ArrowLeft, ChevronDown, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Check, RefreshCw } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function ItemDescricao() {
   const { id } = useParams();
@@ -10,9 +10,19 @@ export default function ItemDescricao() {
   const [showManualModal, setShowManualModal] = useState(false);
   const [qtd, setQtd] = useState(1);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Find item by ID or default to Ferro de Solda (ID 3)
-  const item = initialItems.find(i => i.id.toString() === id) || initialItems[2];
+  // Fetch item details by ID from API
+  useEffect(() => {
+    async function loadItem() {
+      setLoading(true);
+      const data = await api.getItemById(id);
+      setItem(data);
+      setLoading(false);
+    }
+    loadItem();
+  }, [id]);
 
   const handleRequisicao = () => {
     setShowSuccessToast(true);
@@ -100,16 +110,23 @@ export default function ItemDescricao() {
         {/* Item Detail Panel */}
         <main className="flex-1 bg-white rounded-3xl p-6 flex flex-col justify-start shadow-sm border border-slate-200 overflow-y-auto w-full">
           
-          {/* Top Bar: Back Arrow Button */}
-          <div className="flex items-center mb-4">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 rounded-xl hover:bg-slate-100 text-slate-800 transition-colors flex items-center gap-2 font-semibold text-lg"
-              title="Voltar para a listagem"
-            >
-              <ArrowLeft className="w-7 h-7" />
-            </button>
-          </div>
+          {loading || !item ? (
+            <div className="py-32 text-center text-slate-600 flex flex-col items-center justify-center gap-3">
+              <RefreshCw className="w-8 h-8 animate-spin text-[#0C3B7C]" />
+              <span className="font-semibold text-base">Carregando especificações do item via API...</span>
+            </div>
+          ) : (
+            <>
+              {/* Top Bar: Back Arrow Button */}
+              <div className="flex items-center mb-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-800 transition-colors flex items-center gap-2 font-semibold text-lg"
+                  title="Voltar para a listagem"
+                >
+                  <ArrowLeft className="w-7 h-7" />
+                </button>
+              </div>
 
           {/* Section 1: Hero Section (Image + Title/Summary + Requisition Box) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-8 border-b border-slate-200">
@@ -310,6 +327,8 @@ export default function ItemDescricao() {
 
             </div>
           </div>
+          </>
+          )}
 
         </main>
       </div>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu } from 'lucide-react';
-import { initialItems } from '../data/items.js';
+import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, RefreshCw } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -11,7 +11,19 @@ export default function Home() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
-  const [items] = useState(initialItems);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch items from API on mount
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await api.getItems();
+      setItems(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
   // Filter items based on search query (Checking ID, Codigo U.F, Item, Quantidade, Reserva, Unidade)
   const filteredItems = items.filter(item => {
@@ -278,7 +290,12 @@ export default function Home() {
 
               {/* Rows List */}
               <div className="space-y-2 mt-2">
-                {filteredItems.length > 0 ? (
+                {loading ? (
+                  <div className="py-16 text-center text-slate-600 bg-[#CBD0D8]/40 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw className="w-6 h-6 animate-spin text-[#0C3B7C]" />
+                    <span className="font-semibold text-sm">Carregando dados da API...</span>
+                  </div>
+                ) : filteredItems.length > 0 ? (
                   filteredItems.map((item) => (
                     <div
                       key={item.id}

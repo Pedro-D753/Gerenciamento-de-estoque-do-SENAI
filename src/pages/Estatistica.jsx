@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Info } from 'lucide-react';
-import { initialItems } from '../data/items.js';
+import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Info, RefreshCw } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function Estatistica() {
   const navigate = useNavigate();
@@ -9,13 +9,25 @@ export default function Estatistica() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedUnidade, setSelectedUnidade] = useState('Todas');
   const [showManualModal, setShowManualModal] = useState(false);
-  const [activeHoverSlice, setActiveHoverSlice] = useState(null);
+  const [allItems, setAllItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch items from API endpoint on component mount
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await api.getItems();
+      setAllItems(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
   // Filter items based on selected unidad filter
   const items = useMemo(() => {
-    if (selectedUnidade === 'Todas') return initialItems;
-    return initialItems.filter(item => item.unidade === selectedUnidade);
-  }, [selectedUnidade]);
+    if (selectedUnidade === 'Todas') return allItems;
+    return allItems.filter(item => item.unidade === selectedUnidade);
+  }, [selectedUnidade, allItems]);
 
   // 1. Total Requisições
   const totalRequisicoes = useMemo(() => {

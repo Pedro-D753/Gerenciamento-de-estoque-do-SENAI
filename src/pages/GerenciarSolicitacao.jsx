@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, ChevronRight } from 'lucide-react';
-import { initialItems } from '../data/items.js';
+import { api } from '../services/api.js';
 
 export default function GerenciarSolicitacao() {
   const navigate = useNavigate();
@@ -10,51 +10,30 @@ export default function GerenciarSolicitacao() {
   const [selectedUnidade, setSelectedUnidade] = useState('Todas');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
-  const [expandedRowId, setExpandedRowId] = useState(1); // Row 1 expanded by default like screenshot 1
+  const [expandedRowId, setExpandedRowId] = useState(1);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const initialRequests = [
-    {
-      id: 1,
-      codigo: '0010151110',
-      item: 'Pendrive',
-      dataSolicitacao: '30/04/2026',
-      quantidade: 23,
-      solicitante: 'M.Pereira.O',
-      unidade: 'Taguatinga',
-      motivo: '',
-      itensRequisitados: 13,
-      itensDisponiveis: 12,
-      image: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=150&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 37,
-      codigo: '564408405',
-      item: 'Teclado',
-      dataSolicitacao: '18/04/2025',
-      quantidade: 92,
-      solicitante: 'L.Otavio.S',
-      unidade: 'Gama',
-      motivo: 'Substituição de equipamento com defeito',
-      itensRequisitados: 5,
-      itensDisponiveis: 92,
-      image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=150&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 4,
-      codigo: '5950241414',
-      item: 'Azulejo Azul',
-      dataSolicitacao: '12/05/2026',
-      quantidade: 580,
-      solicitante: 'R.Silva',
-      unidade: 'Sobradinho',
-      motivo: 'Obra no laboratório 3',
-      itensRequisitados: 100,
-      itensDisponiveis: 580,
-      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=150&auto=format&fit=crop&q=80'
+  // Fetch pending requests from API
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await api.getGerenciarSolicitacoes();
+      setRequests(data);
+      setLoading(false);
     }
-  ];
+    loadData();
+  }, []);
 
-  const [requests, setRequests] = useState(initialRequests);
+  const handleAprovar = async (id) => {
+    await api.aprovarSolicitacao(id);
+    setRequests(prev => prev.filter(r => r.id !== id));
+  };
+
+  const handleExcluir = async (id) => {
+    await api.recusarSolicitacao(id);
+    setRequests(prev => prev.filter(r => r.id !== id));
+  };
 
   const filteredRequests = requests.filter(req => {
     const query = searchTerm.toLowerCase().trim();
@@ -66,14 +45,6 @@ export default function GerenciarSolicitacao() {
       req.unidade.toLowerCase().includes(query)
     );
   });
-
-  const handleAprovar = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
-  };
-
-  const handleExcluir = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
-  };
 
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col font-sans antialiased text-slate-800">
