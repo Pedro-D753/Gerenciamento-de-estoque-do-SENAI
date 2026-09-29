@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, Info, RefreshCw } from 'lucide-react';
+import { ChevronDown, Filter, BookOpen, BarChart3, FileText, LayoutDashboard, Menu, RefreshCw } from 'lucide-react';
 import { api } from '../services/api.js';
+import { initialItems } from '../data/items.js';
 
 export default function Estatistica() {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function Estatistica() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedUnidade, setSelectedUnidade] = useState('Todas');
   const [showManualModal, setShowManualModal] = useState(false);
-  const [allItems, setAllItems] = useState([]);
+  const [allItems, setAllItems] = useState(initialItems);
   const [loading, setLoading] = useState(true);
 
   // Fetch items from API endpoint on component mount
@@ -17,7 +18,9 @@ export default function Estatistica() {
     async function loadData() {
       setLoading(true);
       const data = await api.getItems();
-      setAllItems(data);
+      if (data && data.length > 0) {
+        setAllItems(data);
+      }
       setLoading(false);
     }
     loadData();
@@ -31,7 +34,7 @@ export default function Estatistica() {
 
   // 1. Total Requisições
   const totalRequisicoes = useMemo(() => {
-    return items.reduce((acc, item) => acc + item.requisicoes, 0);
+    return items.reduce((acc, item) => acc + (item.requisicoes || 0), 0);
   }, [items]);
 
   // Percentage growth vs last month (dynamic baseline calculation)
@@ -42,29 +45,29 @@ export default function Estatistica() {
 
   // 2. Item mais requisitado
   const itemMaisRequisitado = useMemo(() => {
-    if (items.length === 0) return initialItems[0];
-    return [...items].sort((a, b) => b.requisicoes - a.requisicoes)[0];
+    if (items.length === 0) return initialItems[0] || { item: 'Nenhum', requisicoes: 0, image: '' };
+    return [...items].sort((a, b) => (b.requisicoes || 0) - (a.requisicoes || 0))[0];
   }, [items]);
 
   const percentMaisRequisitado = useMemo(() => {
-    if (totalRequisicoes === 0) return 0;
-    return Math.round((itemMaisRequisitado.requisicoes / totalRequisicoes) * 100);
+    if (totalRequisicoes === 0 || !itemMaisRequisitado) return 0;
+    return Math.round(((itemMaisRequisitado.requisicoes || 0) / totalRequisicoes) * 100);
   }, [itemMaisRequisitado, totalRequisicoes]);
 
   // 3. Item Crítico (Menor estoque)
   const itemCritico = useMemo(() => {
-    if (items.length === 0) return initialItems[0];
-    return [...items].sort((a, b) => a.quantidade - b.quantidade)[0];
+    if (items.length === 0) return initialItems[0] || { item: 'Nenhum', quantidade: 0, image: '' };
+    return [...items].sort((a, b) => (a.quantidade || 0) - (b.quantidade || 0))[0];
   }, [items]);
 
   // 4. Requisições por Unidade (Dynamic calculation)
   const unidadeStats = useMemo(() => {
     const map = {};
-    initialItems.forEach(item => {
-      map[item.unidade] = (map[item.unidade] || 0) + item.requisicoes;
+    allItems.forEach(item => {
+      map[item.unidade] = (map[item.unidade] || 0) + (item.requisicoes || 0);
     });
 
-    const total = Object.values(map).reduce((a, b) => a + b, 0);
+    const total = Object.values(map).reduce((a, b) => a + b, 0) || 1;
     const colors = { Taguatinga: '#3B82F6', Gama: '#C084FC', Sobradinho: '#F59E0B' };
 
     return Object.keys(map).map(unidade => ({
@@ -73,7 +76,7 @@ export default function Estatistica() {
       percentage: Math.round((map[unidade] / total) * 100),
       color: colors[unidade] || '#94A3B8'
     }));
-  }, []);
+  }, [allItems]);
 
   // 5. Requisições por Mês (Dynamic monthly history aggregation)
   const mesesStats = useMemo(() => {
@@ -81,9 +84,11 @@ export default function Estatistica() {
     const totals = [0, 0, 0, 0, 0];
 
     items.forEach(item => {
-      item.historicoMensal.forEach((val, idx) => {
-        totals[idx] += val;
-      });
+      if (item.historicoMensal && Array.isArray(item.historicoMensal)) {
+        item.historicoMensal.forEach((val, idx) => {
+          if (totals[idx] !== undefined) totals[idx] += val;
+        });
+      }
     });
 
     const grandTotal = totals.reduce((a, b) => a + b, 0) || 1;
@@ -101,7 +106,7 @@ export default function Estatistica() {
   const categoriaGiro = useMemo(() => {
     const map = {};
     items.forEach(item => {
-      map[item.categoria] = (map[item.categoria] || 0) + item.quantidade;
+      map[item.categoria] = (map[item.categoria] || 0) + (item.quantidade || 0);
     });
 
     return [
@@ -114,7 +119,7 @@ export default function Estatistica() {
 
   // 7. Nível de Estoque Atual vs Passado
   const totalEstoqueAtual = useMemo(() => {
-    return items.reduce((acc, item) => acc + item.quantidade, 0);
+    return items.reduce((acc, item) => acc + (item.quantidade || 0), 0);
   }, [items]);
 
   const percentEstoqueAtual = Math.min(Math.round((totalEstoqueAtual / 1500) * 100), 100);
@@ -124,25 +129,26 @@ export default function Estatistica() {
     <div className="min-h-screen w-full bg-slate-100 flex flex-col font-sans antialiased text-slate-800">
       
       {/* Header */}
-      <header className="bg-white px-6 py-3 flex items-center justify-between shadow-xs z-10 w-full border-b border-slate-200">
+      <header className="bg-white px-5 py-2.5 flex items-center justify-between shadow-xs z-10 w-full border-b border-slate-200">
         <div className="flex items-center space-x-3">
           <img 
             src="/Senai.png" 
             alt="SENAI Logo" 
-            className="h-10 md:h-12 object-contain cursor-pointer"
+            className="h-9 md:h-10 object-contain cursor-pointer"
             onClick={() => navigate('/')}
             onError={(e) => {
               e.target.style.display = 'none';
-              document.getElementById('senai-text-fallback-est').style.display = 'block';
+              const fb = document.getElementById('senai-text-fallback-est');
+              if (fb) fb.style.display = 'block';
             }}
           />
-          <div id="senai-text-fallback-est" className="hidden font-black italic tracking-tighter text-3xl select-none">
+          <div id="senai-text-fallback-est" className="hidden font-black italic tracking-tighter text-2xl select-none">
             <span className="text-[#0C3B7C] font-extrabold">SENAI</span>
           </div>
         </div>
 
         {/* Dashboard Title in Header */}
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight text-center flex-1">
+        <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight text-center flex-1">
           Dashboard de Desempenho
         </h1>
 
@@ -151,22 +157,22 @@ export default function Estatistica() {
           <button
             onClick={() => setShowFilterMenu(!showFilterMenu)}
             aria-label="Opções de Filtro"
-            className="bg-[#CBD0D8] hover:bg-[#bcc2cd] text-slate-700 p-2.5 rounded-xl border border-slate-300/60 shadow-xs transition-colors flex items-center justify-center"
+            className="bg-[#CBD0D8] hover:bg-[#bcc2cd] text-slate-700 p-2 rounded-xl border border-slate-300/60 shadow-xs transition-colors flex items-center justify-center cursor-pointer"
           >
-            <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${showFilterMenu ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showFilterMenu ? 'rotate-180' : ''}`} />
           </button>
 
           <button
             onClick={() => setShowFilterMenu(!showFilterMenu)}
-            className="bg-[#CBD0D8] hover:bg-[#bcc2cd] text-slate-700 font-medium px-8 py-2 rounded-xl border border-slate-300/60 shadow-xs transition-colors flex items-center gap-2"
+            className="bg-[#CBD0D8] hover:bg-[#bcc2cd] text-slate-700 font-medium px-5 py-1.5 rounded-xl border border-slate-300/60 shadow-xs transition-colors flex items-center gap-2 text-sm cursor-pointer"
           >
-            <Filter className="w-4 h-4 text-slate-600" />
+            <Filter className="w-3.5 h-3.5 text-slate-600" />
             <span>Filtro</span>
           </button>
 
           {showFilterMenu && (
-            <div className="absolute right-0 top-12 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-20 animate-in fade-in slide-in-from-top-2">
-              <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase border-b border-slate-100">
+            <div className="absolute right-0 top-11 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-20 animate-in fade-in slide-in-from-top-2">
+              <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase border-b border-slate-100">
                 Filtrar por Unidade
               </div>
               {['Todas', 'Taguatinga', 'Gama', 'Sobradinho'].map((unidade) => (
@@ -176,7 +182,7 @@ export default function Estatistica() {
                     setSelectedUnidade(unidade);
                     setShowFilterMenu(false);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                  className={`w-full text-left px-3.5 py-2 text-xs transition-colors flex items-center justify-between cursor-pointer ${
                     selectedUnidade === unidade
                       ? 'bg-blue-50 text-[#0C3B7C] font-semibold'
                       : 'text-slate-700 hover:bg-slate-50'
@@ -192,47 +198,47 @@ export default function Estatistica() {
       </header>
 
       {/* Red Divider Line */}
-      <div className="h-1.5 bg-[#E30613] w-full"></div>
+      <div className="h-1 bg-[#E30613] w-full"></div>
 
       {/* Main Layout */}
-      <div className="flex flex-1 p-4 md:p-6 gap-4 md:gap-6 bg-slate-100 w-full">
+      <div className="flex flex-1 p-3 md:p-4 gap-3 md:gap-4 bg-slate-100 w-full overflow-hidden">
         
         {/* Sidebar */}
         <aside 
-          className={`bg-[#0C3B7C] rounded-2xl p-3 flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 ${
-            isSidebarCollapsed ? 'w-16 md:w-20 items-center' : 'w-64'
+          className={`bg-[#0C3B7C] rounded-2xl p-2.5 flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 ${
+            isSidebarCollapsed ? 'w-14 md:w-16 items-center' : 'w-56'
           }`}
         >
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-3">
             {/* Sandwich Toggle Button */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
-              className={`w-full flex items-center justify-center p-3 text-white rounded-xl hover:bg-white/10 transition-colors ${
+              className={`w-full flex items-center justify-center p-2 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer ${
                 isSidebarCollapsed ? 'hover:bg-white/20' : 'justify-between'
               }`}
             >
-              <Menu className="w-7 h-7" />
-              {!isSidebarCollapsed && <span className="font-semibold text-sm uppercase tracking-wider text-slate-200">Menu</span>}
+              <Menu className="w-5 h-5 md:w-6 md:h-6" />
+              {!isSidebarCollapsed && <span className="font-semibold text-xs uppercase tracking-wider text-slate-200">Menu</span>}
             </button>
 
-            <div className="h-px bg-white/20 w-full my-2"></div>
+            <div className="h-px bg-white/20 w-full my-1.5"></div>
 
             {/* Navigation Options */}
-            <div className="space-y-3 w-full">
+            <div className="space-y-2 w-full">
               {/* Visão Geral */}
               <button
                 onClick={() => navigate('/')}
                 title="Visão Geral"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center cursor-pointer ${
+                  isSidebarCollapsed ? 'justify-center p-2.5 text-base font-bold' : 'px-3.5 py-2.5 gap-2.5 text-sm'
                 } text-white hover:bg-white/10`}
               >
                 {isSidebarCollapsed ? (
                   <span>V</span>
                 ) : (
                   <>
-                    <LayoutDashboard className="w-5 h-5 shrink-0" />
+                    <LayoutDashboard className="w-4 h-4 shrink-0" />
                     <span className="truncate">Visão Geral</span>
                   </>
                 )}
@@ -242,15 +248,15 @@ export default function Estatistica() {
               <button
                 onClick={() => navigate('/estatistica')}
                 title="Estatísticas"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center cursor-pointer ${
+                  isSidebarCollapsed ? 'justify-center p-2.5 text-base font-bold' : 'px-3.5 py-2.5 gap-2.5 text-sm'
                 } bg-[#6B84A6] text-white shadow-md`}
               >
                 {isSidebarCollapsed ? (
                   <span>E</span>
                 ) : (
                   <>
-                    <BarChart3 className="w-5 h-5 shrink-0" />
+                    <BarChart3 className="w-4 h-4 shrink-0" />
                     <span className="truncate">Estatísticas</span>
                   </>
                 )}
@@ -260,15 +266,15 @@ export default function Estatistica() {
               <button
                 onClick={() => navigate('/solicitacao')}
                 title="Solicitação"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center cursor-pointer ${
+                  isSidebarCollapsed ? 'justify-center p-2.5 text-base font-bold' : 'px-3.5 py-2.5 gap-2.5 text-sm'
                 } text-white hover:bg-white/10`}
               >
                 {isSidebarCollapsed ? (
                   <span>S</span>
                 ) : (
                   <>
-                    <FileText className="w-5 h-5 shrink-0" />
+                    <FileText className="w-4 h-4 shrink-0" />
                     <span className="truncate">Solicitação</span>
                   </>
                 )}
@@ -280,62 +286,66 @@ export default function Estatistica() {
           <button
             onClick={() => setShowManualModal(true)}
             title="Manual de Usuário"
-            className={`w-full bg-[#FF652F] hover:bg-[#e85522] text-white font-semibold rounded-xl text-center shadow-md transition-all flex items-center justify-center ${
-              isSidebarCollapsed ? 'p-3' : 'py-3.5 px-4 gap-2'
+            className={`w-full bg-[#FF652F] hover:bg-[#e85522] text-white font-semibold rounded-xl text-center shadow-md transition-all flex items-center justify-center cursor-pointer ${
+              isSidebarCollapsed ? 'p-2.5' : 'py-2.5 px-3 gap-2 text-xs'
             }`}
           >
-            <BookOpen className="w-5 h-5 shrink-0" />
+            <BookOpen className="w-4 h-4 shrink-0" />
             {!isSidebarCollapsed && <span className="truncate">Manual de Usuário</span>}
           </button>
         </aside>
 
         {/* Dashboard Grid Content Panel */}
-        <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 w-full overflow-y-auto">
+        <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-3.5 w-full overflow-y-auto pr-0.5">
           
           {/* LEFT & MIDDLE COLUMNS */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
+          <div className="lg:col-span-7 flex flex-col gap-3">
             
             {/* Row 1: Requisições & Item Mais Requisitado */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               
               {/* Card 1: Requisições (Dynamic Count) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 text-center">Requisições</h3>
-                <div className="flex items-center justify-center gap-6 my-3">
-                  <span className="text-3xl font-extrabold text-slate-900">{totalRequisicoes}</span>
-                  <span className="text-xl font-bold text-slate-700">{percentCrescimento}%</span>
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 text-center">Requisições</h3>
+                <div className="flex items-center justify-center gap-4 my-2">
+                  <span className="text-2xl md:text-3xl font-extrabold text-slate-900">{totalRequisicoes}</span>
+                  <span className="text-base md:text-lg font-bold text-slate-700">{percentCrescimento}%</span>
                 </div>
               </div>
 
               {/* Card 2: Item mais requisitado (Dynamic Item & Percentage) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 text-center">Item mais requisitado</h3>
-                <div className="flex items-center justify-around my-2">
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 text-center">Item mais requisitado</h3>
+                <div className="flex items-center justify-around my-1">
                   <div className="flex flex-col items-center">
-                    <span className="font-bold text-slate-900 mb-1">{itemMaisRequisitado.item}</span>
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 shadow-xs">
-                      <img 
-                        src={itemMaisRequisitado.image} 
-                        alt={itemMaisRequisitado.item} 
-                        className="w-full h-full object-cover"
-                      />
+                    <span className="font-bold text-xs text-slate-900 mb-1 max-w-[110px] truncate text-center">{itemMaisRequisitado?.item || 'N/A'}</span>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 shadow-xs">
+                      {itemMaisRequisitado?.image ? (
+                        <img 
+                          src={itemMaisRequisitado.image} 
+                          alt={itemMaisRequisitado.item} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">Sem foto</div>
+                      )}
                     </div>
                   </div>
-                  <span className="text-2xl font-extrabold text-slate-900">{percentMaisRequisitado}%</span>
+                  <span className="text-xl font-extrabold text-slate-900">{percentMaisRequisitado}%</span>
                 </div>
               </div>
 
             </div>
 
             {/* Row 2: Requisições por mês & Item Crítico */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               
               {/* Card 3: Requisições por mês (Dynamic Donut Slices) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-4 border border-slate-300/60 shadow-xs flex flex-col items-center justify-between hover:bg-[#c3c8d1] transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 text-center mb-1">Requisições por mês</h3>
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3 border border-slate-300/60 shadow-xs flex flex-col items-center justify-between hover:bg-[#c3c8d1] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 text-center mb-0.5">Requisições por mês</h3>
                 
                 {/* Donut Chart Visual SVG */}
-                <div className="relative w-36 h-36 flex items-center justify-center my-1">
+                <div className="relative w-28 h-28 flex items-center justify-center my-0.5">
                   <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                     <circle cx="18" cy="18" r="15.915" fill="none" stroke="#60A5FA" strokeWidth="6" strokeDasharray="30 70" strokeDashoffset="0" />
                     <circle cx="18" cy="18" r="15.915" fill="none" stroke="#A78BFA" strokeWidth="6" strokeDasharray="45 55" strokeDashoffset="-30" />
@@ -343,7 +353,7 @@ export default function Estatistica() {
                   </svg>
                 </div>
 
-                <div className="flex justify-center gap-3 text-[10px] font-semibold text-slate-700">
+                <div className="flex justify-center gap-2 text-[9px] font-semibold text-slate-700">
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#60A5FA]"></span> Jan-Fev</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#A78BFA]"></span> Mar-Abr</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#FBBF24]"></span> Mai</span>
@@ -351,22 +361,26 @@ export default function Estatistica() {
               </div>
 
               {/* Card 4: Item Crítico (Dynamic Lowest Stock) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 text-center">Item Crítico</h3>
-                <div className="flex items-center justify-between px-3 my-2">
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 text-center">Item Crítico</h3>
+                <div className="flex items-center justify-between px-2 my-1">
                   <div className="flex flex-col items-center">
-                    <span className="font-bold text-slate-900 mb-1 max-w-[120px] truncate text-center">{itemCritico.item}</span>
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 shadow-xs">
-                      <img 
-                        src={itemCritico.image} 
-                        alt={itemCritico.item} 
-                        className="w-full h-full object-cover"
-                      />
+                    <span className="font-bold text-xs text-slate-900 mb-1 max-w-[100px] truncate text-center">{itemCritico?.item || 'N/A'}</span>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 shadow-xs">
+                      {itemCritico?.image ? (
+                        <img 
+                          src={itemCritico.image} 
+                          alt={itemCritico.item} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">Sem foto</div>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <span className="text-xs font-bold text-slate-700 text-center leading-tight">Unidades em<br/>estoque</span>
-                    <span className="text-2xl font-black text-slate-900 mt-1">{itemCritico.quantidade}</span>
+                    <span className="text-[11px] font-bold text-slate-700 text-center leading-tight">Unidades em<br/>estoque</span>
+                    <span className="text-xl font-black text-slate-900 mt-1">{itemCritico?.quantidade ?? 0}</span>
                   </div>
                 </div>
               </div>
@@ -374,14 +388,14 @@ export default function Estatistica() {
             </div>
 
             {/* Row 3: Requisições por unidade & Giro de Estoque */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               
               {/* Card 5: Requisições por unidade (Dynamic Groups) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-4 border border-slate-300/60 shadow-xs flex flex-col items-center justify-between hover:bg-[#c3c8d1] transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 text-center mb-1">Requisições por unidade</h3>
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3 border border-slate-300/60 shadow-xs flex flex-col items-center justify-between hover:bg-[#c3c8d1] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 text-center mb-0.5">Requisições por unidade</h3>
                 
                 {/* Pie Chart Visual SVG */}
-                <div className="relative w-36 h-36 flex items-center justify-center my-1">
+                <div className="relative w-28 h-28 flex items-center justify-center my-0.5">
                   <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                     <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3B82F6" strokeWidth="6" strokeDasharray="35 65" strokeDashoffset="0" />
                     <circle cx="18" cy="18" r="15.915" fill="none" stroke="#C084FC" strokeWidth="6" strokeDasharray="40 60" strokeDashoffset="-35" />
@@ -390,10 +404,10 @@ export default function Estatistica() {
                 </div>
 
                 {/* Legend list with dynamic percentages */}
-                <div className="flex justify-center gap-3 text-[10px] font-semibold text-slate-700">
+                <div className="flex justify-center gap-2 text-[9px] font-semibold text-slate-700">
                   {unidadeStats.map(u => (
                     <span key={u.name} className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: u.color }}></span>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: u.color }}></span>
                       {u.name} ({u.percentage}%)
                     </span>
                   ))}
@@ -401,50 +415,50 @@ export default function Estatistica() {
               </div>
 
               {/* Card 6: Giro de Estoque x Cobertura em dias (Light Theme) */}
-              <div className="bg-[#CBD0D8]/90 rounded-2xl p-4 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+              <div className="bg-[#CBD0D8]/90 rounded-2xl p-3 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
                 <div>
-                  <h4 className="text-xs font-bold tracking-wider text-slate-900 uppercase">Giro de Estoque x Cobertura em Dias</h4>
-                  <p className="text-[10px] text-slate-600 uppercase tracking-widest font-medium">Comparação por categoria de materiais - últimos 30 dias</p>
+                  <h4 className="text-[11px] font-bold tracking-wide text-slate-900 uppercase">Giro de Estoque x Cobertura</h4>
+                  <p className="text-[9px] text-slate-600 uppercase tracking-tight font-medium">Últimos 30 dias</p>
                 </div>
 
                 {/* Bar Chart Bars */}
-                <div className="space-y-2 my-3">
+                <div className="space-y-1.5 my-2">
                   {categoriaGiro.map(cat => (
-                    <div key={cat.nome} className="space-y-1">
-                      <div className="flex justify-between text-[10px] text-slate-800 font-semibold">
-                        <span className="truncate max-w-[160px]">{cat.nome}</span>
+                    <div key={cat.nome} className="space-y-0.5">
+                      <div className="flex justify-between text-[9px] text-slate-800 font-semibold">
+                        <span className="truncate max-w-[130px]">{cat.nome}</span>
                         <span>{cat.giro}</span>
                       </div>
-                      <div className="w-full bg-slate-300/80 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-300/80 h-2 rounded-full overflow-hidden">
                         <div className={`${cat.color} h-full rounded-full transition-all duration-500`} style={{ width: `${cat.cobertura}%` }}></div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex justify-between text-[9px] text-slate-600 border-t border-slate-300/70 pt-1.5 font-semibold">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Giro (vezes/mês)</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#FF652F]"></span> Cobertura (dias)</span>
+                <div className="flex justify-between text-[8px] text-slate-600 border-t border-slate-300/70 pt-1 font-semibold">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Giro (vezes/mês)</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF652F]"></span> Cobertura (dias)</span>
                 </div>
               </div>
 
             </div>
 
             {/* Row 4: Nível de Estoque (Calculated Stock Total) */}
-            <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-bold text-slate-900 text-center flex-1">Nível de Estoque</h3>
-                <span className="text-xs font-bold bg-blue-100 text-[#0C3B7C] px-2.5 py-1 rounded-full">
-                  Total: {totalEstoqueAtual} unidades
+            <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+              <div className="flex justify-between items-center mb-1.5">
+                <h3 className="text-sm font-bold text-slate-900 text-center flex-1">Nível de Estoque</h3>
+                <span className="text-[10px] font-bold bg-blue-100 text-[#0C3B7C] px-2 py-0.5 rounded-full">
+                  Total: {totalEstoqueAtual} un.
                 </span>
               </div>
               
-              <div className="space-y-3 px-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-semibold text-slate-700 w-24 text-right">Mês Atual</span>
-                  <div className="flex-1 bg-slate-300/60 h-6 rounded-md overflow-hidden">
+              <div className="space-y-2 px-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] font-semibold text-slate-700 w-20 text-right">Mês Atual</span>
+                  <div className="flex-1 bg-slate-300/60 h-4.5 rounded-md overflow-hidden">
                     <div 
-                      className="bg-[#3B82F6] h-full rounded-md transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-white" 
+                      className="bg-[#3B82F6] h-full rounded-md transition-all duration-500 flex items-center justify-end pr-1.5 text-[9px] font-bold text-white" 
                       style={{ width: `${percentEstoqueAtual}%` }}
                     >
                       {percentEstoqueAtual}%
@@ -452,11 +466,11 @@ export default function Estatistica() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-semibold text-slate-700 w-24 text-right">Mês Passado</span>
-                  <div className="flex-1 bg-slate-300/60 h-6 rounded-md overflow-hidden">
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] font-semibold text-slate-700 w-20 text-right">Mês Passado</span>
+                  <div className="flex-1 bg-slate-300/60 h-4.5 rounded-md overflow-hidden">
                     <div 
-                      className="bg-[#3B82F6] h-full rounded-md transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-white" 
+                      className="bg-[#3B82F6] h-full rounded-md transition-all duration-500 flex items-center justify-end pr-1.5 text-[9px] font-bold text-white" 
                       style={{ width: `${percentEstoquePassado}%` }}
                     >
                       {percentEstoquePassado}%
@@ -466,7 +480,7 @@ export default function Estatistica() {
               </div>
 
               {/* Axis Percentages */}
-              <div className="flex justify-between pl-28 pr-2 text-[10px] text-slate-600 font-semibold mt-3">
+              <div className="flex justify-between pl-24 pr-1 text-[9px] text-slate-600 font-semibold mt-2">
                 <span>0%</span>
                 <span>10%</span>
                 <span>20%</span>
@@ -480,23 +494,24 @@ export default function Estatistica() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="lg:col-span-5 flex flex-col gap-3">
             
             {/* Card 7: Radar / Spider Chart */}
-            <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between h-full min-h-[300px] hover:bg-[#c3c8d1] transition-colors">
-              
+            <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+              <h3 className="text-sm font-bold text-slate-900 text-center mb-1">Distribuição por Categoria</h3>
+
               {/* Radar Legend */}
-              <div className="flex flex-wrap justify-center gap-3 text-[10px] font-semibold text-slate-700 mb-2">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Construção civil</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> T.I</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Mecânica</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span> Elétrica</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Automotiva</span>
+              <div className="flex flex-wrap justify-center gap-2 text-[9px] font-semibold text-slate-700 mb-1">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Construção civil</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500"></span> T.I</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Mecânica</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400"></span> Elétrica</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Automotiva</span>
               </div>
 
               {/* SVG Radar Chart Graphic */}
-              <div className="relative w-full h-64 flex items-center justify-center my-2">
-                <svg viewBox="0 0 200 200" className="w-full h-full max-w-[240px]">
+              <div className="relative w-full h-44 flex items-center justify-center my-1">
+                <svg viewBox="0 0 200 200" className="w-full h-full max-w-[190px]">
                   {/* Concentric Polygons */}
                   <polygon points="100,20 176,75 147,165 53,165 24,75" fill="none" stroke="#CBD5E1" strokeWidth="1" />
                   <polygon points="100,40 157,81 135,149 65,149 43,81" fill="none" stroke="#CBD5E1" strokeWidth="1" />
@@ -511,11 +526,11 @@ export default function Estatistica() {
                   <line x1="100" y1="100" x2="24" y2="75" stroke="#94A3B8" strokeWidth="1" />
 
                   {/* Axis Labels */}
-                  <text x="100" y="12" textAnchor="middle" className="text-[9px] fill-slate-700 font-semibold">Fio</text>
-                  <text x="185" y="78" textAnchor="start" className="text-[9px] fill-slate-700 font-semibold">Computador</text>
-                  <text x="152" y="178" textAnchor="start" className="text-[9px] fill-slate-700 font-semibold">Ferramentas</text>
-                  <text x="48" y="178" textAnchor="end" className="text-[9px] fill-slate-700 font-semibold">E.P.I</text>
-                  <text x="15" y="78" textAnchor="end" className="text-[9px] fill-slate-700 font-semibold">Monitor</text>
+                  <text x="100" y="12" textAnchor="middle" className="text-[8px] fill-slate-700 font-semibold">Fio</text>
+                  <text x="185" y="78" textAnchor="start" className="text-[8px] fill-slate-700 font-semibold">PC</text>
+                  <text x="152" y="176" textAnchor="start" className="text-[8px] fill-slate-700 font-semibold">Ferramentas</text>
+                  <text x="48" y="176" textAnchor="end" className="text-[8px] fill-slate-700 font-semibold">E.P.I</text>
+                  <text x="15" y="78" textAnchor="end" className="text-[8px] fill-slate-700 font-semibold">Monitor</text>
 
                   {/* Filled Colored Polygons */}
                   <polygon points="100,35 160,78 130,150 70,140 45,85" fill="#8B5CF6" fillOpacity="0.4" stroke="#7C3AED" strokeWidth="1.5" />
@@ -527,17 +542,18 @@ export default function Estatistica() {
             </div>
 
             {/* Card 8: Stacked Area Chart */}
-            <div className="bg-[#CBD0D8]/90 rounded-2xl p-5 border border-slate-300/60 shadow-xs flex flex-col justify-between h-full min-h-[300px] hover:bg-[#c3c8d1] transition-colors">
-              
+            <div className="bg-[#CBD0D8]/90 rounded-2xl p-3.5 border border-slate-300/60 shadow-xs flex flex-col justify-between hover:bg-[#c3c8d1] transition-colors">
+              <h3 className="text-sm font-bold text-slate-900 text-center mb-1">Evolução Temporal</h3>
+
               {/* Area Chart Legend */}
-              <div className="flex justify-center gap-4 text-xs font-semibold text-slate-700 mb-2">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500"></span> T.I</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-purple-400"></span> Construção civil</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-400"></span> Automotiva</span>
+              <div className="flex justify-center gap-3 text-[10px] font-semibold text-slate-700 mb-1">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> T.I</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400"></span> Construção civil</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Automotiva</span>
               </div>
 
               {/* Area Chart SVG Visual */}
-              <div className="relative w-full h-56 flex items-center justify-center my-2">
+              <div className="relative w-full h-40 flex items-center justify-center my-1">
                 <svg viewBox="0 0 300 160" className="w-full h-full">
                   {[140, 120, 100, 80, 60, 40, 20, 0].map((val, idx) => {
                     const y = 20 + idx * 18;
@@ -579,7 +595,7 @@ export default function Estatistica() {
               </h3>
               <button
                 onClick={() => setShowManualModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 rounded-full hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 rounded-full hover:bg-slate-100 cursor-pointer"
               >
                 ✕
               </button>
@@ -595,7 +611,7 @@ export default function Estatistica() {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setShowManualModal(false)}
-                className="bg-[#0C3B7C] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-900 transition-colors"
+                className="bg-[#0C3B7C] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-900 transition-colors cursor-pointer"
               >
                 Entendido
               </button>
