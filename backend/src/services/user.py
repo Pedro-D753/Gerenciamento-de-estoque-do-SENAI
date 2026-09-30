@@ -1,7 +1,6 @@
 from ..models.user import UserModel
 from .erros import ErroInesperado, ErroUserExiste, ErroUserNaoEncontrado
-from ..config import SECRETES_KEY, ALG, TIMER
-from fastapi import HTTPException
+from ..config import SECRET_KEY, ALG, TIMER
 from jose import jwt
 from datetime import datetime, timezone
 
@@ -9,6 +8,7 @@ from datetime import datetime, timezone
 def criar_usuario(session, dados):
     # verifica se existe esse usuario no banco
     existe = session.query(UserModel).filter(UserModel.nome == dados.nome, 
+                                             UserModel.email == dados.email,
                                             UserModel.senha == dados.senha, 
                                             UserModel.matricula == dados.matricula, 
                                             UserModel.is_admin == dados.is_admin, 
@@ -20,7 +20,7 @@ def criar_usuario(session, dados):
     # tratamento de erros
     try:
         # cria o objeto usuario
-        usuario = UserModel(dados.nome, dados.senha, dados.matricula, dados.unidade_id, dados.is_admin, dados.is_ativo)
+        usuario = UserModel(dados.nome, dados.email, dados.senha, dados.matricula, dados.unidade_id, dados.is_admin, dados.is_ativo)
 
         # adiciona o objeto no banco e salva
         session.add(usuario)
@@ -56,7 +56,7 @@ def criar_token(id_user: int, is_admin : bool= False):
                 }
         
         #Cria o JWT
-        jwt_codificado = jwt.encode(dic_info, SECRETES_KEY, ALG)#type: ignore
+        jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALG)#type: ignore
         return jwt_codificado
     
     except Exception as e:
@@ -83,16 +83,10 @@ def autenticar(session, dados):
     return criar_token(existe.id, existe.is_admin)
 #endregion
 
-#region FUNCAO ATUALIZAR USUARIO
-def atualizar_usuario(session, dados_old, dados_new):
+#region FUNCAO ATUALIZAR USUARIO 
+def atualizar_usuario(session, id, dados_new):
     # verifica se existe
-    existe_old = session.query(UserModel).filter(UserModel.nome == dados_old.nome,
-                                                 UserModel.email == dados_old.email,
-                                                 UserModel.senha == dados_old.senha,
-                                                 UserModel.matricula == dados_old.matricula,
-                                                 UserModel.is_admin == dados_old.is_admin,
-                                                 UserModel.is_ativo == dados_old.is_ativo,
-                                                 UserModel.unidade_id == dados_old.unidade_id).first()
+    existe_old = session.query(UserModel).filter(UserModel.id == id).first()
     existe_new = session.query(UserModel).filter(UserModel.nome == dados_new.nome,
                                                  UserModel.email == dados_new.email,
                                                  UserModel.senha == dados_new.senha,
@@ -101,21 +95,21 @@ def atualizar_usuario(session, dados_old, dados_new):
                                                  UserModel.is_ativo == dados_new.is_ativo,
                                                  UserModel.unidade_id == dados_new.unidade_id).first()
     if not existe_old:
-        return ErroUserNaoEncontrado(session)
+        raise ErroUserNaoEncontrado(session)
 
     if existe_new:
-        return ErroUserExiste(session)
+        raise ErroUserExiste(session)
 
     # tratamento de erros
     try:
         # atualiza o objeto
-        existe_old.nome = existe_new.nome
-        existe_old.email = existe_new.email
-        existe_old.senha = existe_new.senha
-        existe_old.matricula = existe_new.matricula
-        existe_old.is_admin = existe_new.is_admin
-        existe_old.is_ativo = existe_new.is_ativo
-        existe_old.unidade_id = existe_new.unidade_id
+        existe_old.nome = dados_new.nome
+        existe_old.email = dados_new.email
+        existe_old.senha = dados_new.senha
+        existe_old.matricula = dados_new.matricula
+        existe_old.is_admin = dados_new.is_admin
+        existe_old.is_ativo = dados_new.is_ativo
+        existe_old.unidade_id = dados_new.unidade_id
 
         session.commit()
         session.refresh(existe_old)
@@ -123,13 +117,13 @@ def atualizar_usuario(session, dados_old, dados_new):
         return {"mensagem":"Usuario atualizado com sucesso!!"}
 
     except Exception as e:
-        return ErroInesperado(e, session)
+        raise ErroInesperado(e, session)
 #endregion
 
 #region FUNCAO EXCLUIR USUARIO
 def excluir_usuario(session, id):
     # verifica se esse usuario existe
-    existe = session.query(UserModel.id == id).first()
+    existe = session.query(UserModel).filter(UserModel.id == id).first()
     if not existe:
         raise ErroUserNaoEncontrado(session)
 
@@ -141,6 +135,6 @@ def excluir_usuario(session, id):
 
         return {"mensagem":"O usuario foi excluido com sucesso!"}
     
-    except:
-        raise ErroUserExiste(session)
+    except Exception as e:
+        raise ErroInesperado(e, session)
 #endregion

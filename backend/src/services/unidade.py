@@ -27,14 +27,14 @@ def criar_unidade(session, dados):
 def ler_unidade(session):
     return session.query(UnidadeModel).all()
 
-def ler_unidade(session, id):
+def ler_unidade_id(session, id):
     return session.query(UnidadeModel).filter(UnidadeModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR UNIDADE
-def atualizar_unidade(session, dados_old, dados_new):
+def atualizar_unidade(session, id, dados_new):
     # verifica se existe essas informacoes no banco
-    existe_old = session.query(UnidadeModel).filter(UnidadeModel.nome == dados_old.nome).first()
+    existe_old = session.query(UnidadeModel).filter(UnidadeModel.id == id).first()
     existe_new = session.query(UnidadeModel).filter(UnidadeModel.nome == dados_new.nome).first()
 
     # se os dados antigos da unidade nao existir

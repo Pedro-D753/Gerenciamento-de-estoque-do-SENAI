@@ -17,7 +17,7 @@ def criar_solicitacao(session, dados):
     # tratamento de erro
     try:
         # cria o objeto solicitacao
-        solicitacao = SolicitacaoModel(dados.nome)
+        solicitacao = SolicitacaoModel(dados.is_aceito, dados.obs_solicita, dados.obs_recusa, dados.tipo, dados.estado, dados.qtd_acao, dados.dt_acao)
 
         # adiciona o objeto no banco e salva
         session.add(solicitacao)
@@ -33,20 +33,14 @@ def criar_solicitacao(session, dados):
 def ler_solicitacao(session):
     return session.query(SolicitacaoModel).all()
 
-def ler_solicitacao(session, id):
+def ler_solicitacao_id(session, id):
     return session.query(SolicitacaoModel).filter(SolicitacaoModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR SOLICITACAO
-def atualizar_solicitacao(session, dados_old, dados_new):
+def atualizar_solicitacao(session, id, dados_new):
     # verifica se existe essas informacoes no banco
-    existe_old = session.query(SolicitacaoModel).filter(SolicitacaoModel.is_aceito == dados_old.is_aceito,
-                                                        SolicitacaoModel.obs_solicita == dados_old.obs_solicita,
-                                                        SolicitacaoModel.obs_recusa == dados_old.obs_recusa,
-                                                        SolicitacaoModel.tipo == dados_old.tipo,
-                                                        SolicitacaoModel.estado == dados_old.estado,
-                                                        SolicitacaoModel.qtd_acao == dados_old.qtd_acao,
-                                                        SolicitacaoModel.dt_acao == dados_old.dt_acao).first()
+    existe_old = session.query(SolicitacaoModel).filter(SolicitacaoModel.id == id).first()
     
     existe_new = session.query(SolicitacaoModel).filter(SolicitacaoModel.is_aceito == dados_new.is_aceito,
                                                         SolicitacaoModel.obs_solicita == dados_new.obs_solicita,
@@ -66,13 +60,13 @@ def atualizar_solicitacao(session, dados_old, dados_new):
     # tratamento de erro
     try:
         # atualiza o objeto Solicitacao
-        existe_old.is_aceito = existe_new.is_aceito
-        existe_old.obs_solicitacao = existe_new.obs_solicitacao
-        existe_old.obs_recusa = existe_new.obs_recusa
-        existe_old.tipo = existe_new.tipo
-        existe_old.estado = existe_new.estado
-        existe_old.qtd_acao = existe_new.qtd_acao
-        existe_old.dt_acao = existe_new.dt_acao
+        existe_old.is_aceito = dados_new.is_aceito
+        existe_old.obs_solicitacao = dados_new.obs_solicitacao
+        existe_old.obs_recusa = dados_new.obs_recusa
+        existe_old.tipo = dados_new.tipo
+        existe_old.estado = dados_new.estado
+        existe_old.qtd_acao = dados_new.qtd_acao
+        existe_old.dt_acao = dados_new.dt_acao
 
         # adiciona o objeto no banco e salva
         session.commit()

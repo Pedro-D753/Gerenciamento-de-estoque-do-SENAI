@@ -29,19 +29,16 @@ def criar_contrato(session, dados):
 def ler_contrato(session):
     return session.query(ContratoModel).all()
 
-def ler_contrato(session, id):
+def ler_contrato_id(session, id):
     return session.query(ContratoModel).filter(ContratoModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR CONTRATO
-def atualizar_contrato(session, dados_old, dados_new):
+def atualizar_contrato(session, id, dados_new):
     # verifica se existe essas informacoes no banco
-    existe_old = session.query(ContratoModel).filter(ContratoModel.dt_final == dados_old.dt_final,
-                                                     ContratoModel.dt_inicial == dados_old.dt_inicial,
-                                                     ContratoModel.registro_id == dados_old.registro_id,
-                                                     ContratoModel.fornecedor_id == dados_old.fornecedor_id).first()
+    existe_old = session.query(ContratoModel).filter(ContratoModel.id == id).first()
     existe_new = session.query(ContratoModel).filter(ContratoModel.dt_final == dados_new.dt_final,
-                                                     ContratoModel.dt_inicial == dados_new.dt_inicial,
+                                                     ContratoModel.dt_inicio == dados_new.dt_inicio,
                                                      ContratoModel.registro_id == dados_new.registro_id,
                                                      ContratoModel.fornecedor_id == dados_new.fornecedor_id).first()
     # se nao existir os dados do antigo contrato
@@ -73,13 +70,13 @@ def atualizar_contrato(session, dados_old, dados_new):
 def excluir_contrato(session, id):
     # verificar se existe esse contrato
     existe = session.query(ContratoModel).filter(ContratoModel.id == id).first()
-    if existe:
+    if not existe:
         raise ErroContratoExiste(session)
 
     # tratamento de erro
     try:
         # excluir objeto do banco e salvar alteracoes do banco
-        session.delete()
+        session.delete(existe)
         session.commit()
 
         return {"mensagem":"Contrato excluido com sucesso!"}

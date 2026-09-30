@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
+from datetime import datetime
 
 class SolicitacaoSchema(BaseModel):
     is_aceito: bool
@@ -9,7 +10,7 @@ class SolicitacaoSchema(BaseModel):
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
-    dt_acao: int
+    dt_acao: datetime
 
 class SolicitacaoReadSchema(BaseModel):
     id: int
@@ -19,7 +20,7 @@ class SolicitacaoReadSchema(BaseModel):
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
-    dt_acao: int
+    dt_acao: datetime
 
 class SolicitacaoUpdateSchema(BaseModel):
     is_aceito: Optional[bool]
@@ -28,7 +29,7 @@ class SolicitacaoUpdateSchema(BaseModel):
     tipo: Optional[TipoEnum]
     estado: Optional[EstadoEnum]
     qtd_acao: Optional[int]
-    dt_acao: Optional[int]
+    dt_acao: Optional[datetime]
 
 # enum class
 class TipoEnum(str, Enum):

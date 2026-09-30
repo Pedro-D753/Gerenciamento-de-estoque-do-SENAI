@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, Text, Enum
+from sqlalchemy import Column, Integer, Boolean, Text, Enum, DateTime
 from datetime import datetime
 import enum
 
@@ -25,7 +25,7 @@ class SolicitacaoModel(Base):
     tipo = Column(Enum(SolicitacaoTipoEnum), nullable=False)
     estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)
-    dt_acao = Column(Integer, nullable=False)
+    dt_acao = Column(DateTime, nullable=False)
 
     def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
         self.is_aceito = is_aceito

@@ -31,18 +31,14 @@ def criar_registro(session, dados):
 def ler_registro(session):
     return session.query(RegistroModel).all()
 
-def ler_registro(session, id):
+def ler_registro_id(session, id):
     return session.query(RegistroModel).filter(RegistroModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR REGISTRO
-def atualizar_registro(session, dados_old, dados_new):
+def atualizar_registro(session, id, dados_new):
     # verifica se existe essas informacoes no banco
-    existe_old = session.query(RegistroModel).filter(RegistroModel.is_saida == dados_old.is_saida,
-                                                    RegistroModel.descricao == dados_old.descricao,
-                                                    RegistroModel.qtd == dados_old.qtd,
-                                                    RegistroModel.dt_registro == dados_old.dt_registro,
-                                                    RegistroModel.estoque_id == dados_old.estoque_id).first()
+    existe_old = session.query(RegistroModel).filter(RegistroModel.id == id).first()
     
     existe_new = session.query(RegistroModel).filter(RegistroModel.is_saida == dados_new.is_saida,
                                                     RegistroModel.descricao == dados_new.descricao,
@@ -61,7 +57,11 @@ def atualizar_registro(session, dados_old, dados_new):
     # tratamento de erro
     try:
         # cria o objeto
-        existe_old.nome == dados_new.nome
+        existe_old.is_saida == dados_new.is_saida
+        existe_old.descricao == dados_new.descricao
+        existe_old.qtd == dados_new.qtd
+        existe_old.dt_registro == dados_new.dt_registro
+        existe_old.estoque_id == dados_new.estoque_id
 
         # adiciona o objeto no banco e salva
         session.commit()

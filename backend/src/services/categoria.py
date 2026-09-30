@@ -27,14 +27,14 @@ def criar_categoria(session, dados):
 def ler_categoria(session):
     return session.query(CategoriaModel).all()
 
-def ler_categoria(session, id):
+def ler_categoria_id(session, id):
     return session.query(CategoriaModel).filter(CategoriaModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR CATEGORIA
-def atualizar_categoria(session, dados_old, dados_new):
+def atualizar_categoria(session, id, dados_new):
     # verifica se existe essas informacoes no banco
-    existe_old = session.query(CategoriaModel).filter(CategoriaModel.nome == dados_old.nome).first()
+    existe_old = session.query(CategoriaModel).filter(CategoriaModel.id == id).first()
     existe_new = session.query(CategoriaModel).filter(CategoriaModel.nome == dados_new.nome).first()
 
     # se os dados antigos da categoria nao existir

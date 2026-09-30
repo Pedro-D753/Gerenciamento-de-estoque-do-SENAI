@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class UserSchema(BaseModel):
     nome: str
+    email: EmailStr
     senha: str
     matricula: int
     is_admin: bool
@@ -17,6 +18,7 @@ class UserLoginSchema(BaseModel):
 class UserReadSchema(BaseModel):
     id: int
     nome: str
+    email: EmailStr
     senha: str
     matricula: int
     is_admin: bool
@@ -26,6 +28,7 @@ class UserReadSchema(BaseModel):
 
 class UserUpdateSchema(BaseModel):
     nome: Optional[str]
+    email: Optional[EmailStr]
     matricula: Optional[int]
     senha: Optional[str]
     is_admin: Optional[bool]

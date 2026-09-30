@@ -27,7 +27,6 @@ class EstoqueReadSchema(BaseModel):
     unidade_id: int
 
 class EstoqueUpdateSchema(BaseModel):
-    id: Optional[int]
     qtd: Optional[int]
     qtd_minima: Optional[int]
     preco_unitario: Optional[Decimal]

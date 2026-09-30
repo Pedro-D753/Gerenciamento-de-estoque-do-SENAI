@@ -10,7 +10,7 @@ def criar_fornecedor(session, dados):
                                                 FornecedorModel.is_ativo == dados.is_ativo).first()
 
     if existe:
-        return ErroFornecedorExiste(session)
+        raise ErroFornecedorExiste(session)
 
     # tratamento de erros
     try:
@@ -24,42 +24,39 @@ def criar_fornecedor(session, dados):
         return {"mensagem":"Fornecedor criado com sucesso!!"}
     
     except Exception as e:
-        return ErroInesperado(e, session)
+        raise ErroInesperado(e, session)
 #endregion
 
 #region FUNCAO LER FORNECEDOR
 def ler_fornecedor(session):
     return session.query(FornecedorModel).all()
 
-def ler_fornecedor(session, id):
+def ler_fornecedor_id(session, id):
     return session.query(FornecedorModel).filter(FornecedorModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR FORNECEDOR
-def atualizar_fornecedor(session, dados_old, dados_new):
+def atualizar_fornecedor(session, id, dados_new):
     # verifica se existe
-    existe_old = session.query(FornecedorModel).filter(FornecedorModel.nome == dados_old.nome,
-                                                FornecedorModel.cnpj == dados_old.cnpj,
-                                                FornecedorModel.contato == dados_old.contato,
-                                                FornecedorModel.is_ativo == dados_old.is_ativo).first()
+    existe_old = session.query(FornecedorModel).filter(FornecedorModel.id == id).first()
     existe_new = session.query(FornecedorModel).filter(FornecedorModel.nome == dados_new.nome,
                                                 FornecedorModel.cnpj == dados_new.cnpj,
                                                 FornecedorModel.contato == dados_new.contato,
                                                 FornecedorModel.is_ativo == dados_new.is_ativo).first()
-
+    
     if not existe_old:
-        return ErroFornecedorNaoEncontrado(session)
+        raise ErroFornecedorNaoEncontrado(session)
 
     if existe_new:
-        return ErroFornecedorExiste(session)
+        raise ErroFornecedorExiste(session)
 
     # tratamento de erros
     try:
         # atualiza objeto
-        existe_old.nome = existe_new.nome
-        existe_old.cnpj = existe_new.cnpj
-        existe_old.contato = existe_new.contato
-        existe_old.is_ativo = existe_new.is_ativo
+        existe_old.nome = dados_new.nome
+        existe_old.cnpj = dados_new.cnpj
+        existe_old.contato = dados_new.contato
+        existe_old.is_ativo = dados_new.is_ativo
 
         # atualiza o banco e salva as alteracoes
         session.commit()
@@ -68,7 +65,7 @@ def atualizar_fornecedor(session, dados_old, dados_new):
         return {"mensagem":"Fornecedor atualizado com sucesso!!"}
     
     except Exception as e:
-        return ErroInesperado(e, session)
+        raise ErroInesperado(e, session)
 #endregion
 
 #region FUNCAO EXCLUIR FORNECEDOR
@@ -77,7 +74,7 @@ def excluir_fornecedor(session, id):
     existe = session.query(FornecedorModel).filter(FornecedorModel.id == id).first()
 
     if not existe: 
-        return ErroFornecedorNaoEncontrado(session)
+        raise ErroFornecedorNaoEncontrado(session)
     
     #tratamento de dados
     try:
@@ -88,5 +85,5 @@ def excluir_fornecedor(session, id):
         return {"mensagem":"Fornecedor excluido com sucesso!!"}
     
     except Exception as e:
-        return ErroInesperado(e, session)
+        raise ErroInesperado(e, session)
 #endregion
