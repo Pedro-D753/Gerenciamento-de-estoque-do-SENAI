@@ -26,7 +26,7 @@ export default function Estatistica() {
     loadData();
   }, []);
 
-  // Filter items based on selected unidad filter
+  
   const items = useMemo(() => {
     if (selectedUnidade === 'Todas') return allItems;
     return allItems.filter(item => item.unidade === selectedUnidade);

@@ -25,6 +25,7 @@ export default function Home() {
     loadData();
   }, []);
 
+
   // Filter items based on search query (Checking ID, Codigo U.F, Item, Quantidade, Reserva, Unidade)
   const filteredItems = items.filter(item => {
     const query = searchTerm.toLowerCase().trim();
@@ -313,7 +314,7 @@ export default function Home() {
                       </div>
 
                       {/* Item: Image fixed on the left, text centered in the middle */}
-                      <div className="col-span-3 border-r border-slate-400/40 px-2 relative flex items-center justify-center min-h-[40px]">
+                      <div className="backgroung-color col-span-3 border-r border-slate-400/40 px-2 relative flex items-center justify-center min-h-[40px]">
                         {/* Fixed Left Image */}
                         <div className="absolute left-3 w-10 h-10 rounded-lg overflow-hidden bg-slate-200 border border-slate-300/80 shrink-0 flex items-center justify-center shadow-xs">
                           <img 
