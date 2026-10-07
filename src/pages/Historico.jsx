@@ -36,9 +36,7 @@ export const Historico = () => {
       (item.motivo && item.motivo.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (selectedFilter === 'Todos') return matchesSearch;
-    if (selectedFilter === 'Gama') return matchesSearch && item.unidade === 'Gama';
-    if (selectedFilter === 'Devolução') return matchesSearch && item.devolucao;
-    return matchesSearch;
+    return matchesSearch && item.categoria === selectedFilter;
   });
 
   return (
@@ -81,25 +79,22 @@ export const Historico = () => {
           </div>
 
           {showFilterDropdown && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl py-1 min-w-[150px] z-50 border border-gray-100">
+            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl py-1 min-w-[170px] z-50 border border-gray-100">
               <button
                 onClick={() => { setSelectedFilter('Todos'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+                className={`w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 ${selectedFilter === 'Todos' ? 'font-bold bg-blue-50/50' : ''}`}
               >
-                Todos
+                Todas Categorias
               </button>
-              <button
-                onClick={() => { setSelectedFilter('Gama'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-              >
-                Unidade Gama
-              </button>
-              <button
-                onClick={() => { setSelectedFilter('Devolução'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-              >
-                Com Devolução
-              </button>
+              {['Informática', 'Hardware', 'Ferramentas', 'Construção', 'Periféricos'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setSelectedFilter(cat); setShowFilterDropdown(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 ${selectedFilter === cat ? 'font-bold bg-blue-50/50' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
           )}
         </div>

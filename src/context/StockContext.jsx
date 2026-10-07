@@ -21,10 +21,18 @@ export const StockProvider = ({ children }) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const toggleStatusAceitar = (id) => {
+  const approveItem = (id) => {
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, statusAceitar: !item.statusAceitar } : item
+        item.id === id ? { ...item, statusAceitar: true } : item
+      )
+    );
+  };
+
+  const withdrawItem = (id) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, statusRetirada: true } : item
       )
     );
   };
@@ -36,7 +44,9 @@ export const StockProvider = ({ children }) => {
         addItem,
         updateItem,
         deleteItem,
-        toggleStatusAceitar,
+        approveItem,
+        toggleStatusAceitar: approveItem,
+        withdrawItem,
         editingItem,
         setEditingItem,
       }}

@@ -3,7 +3,7 @@ import { useStock } from '../context/StockContext';
 import { Search, ChevronDown, ArrowUp, Circle, X } from 'lucide-react';
 
 export const VisaoGeral = () => {
-  const { items, toggleStatusAceitar } = useStock();
+  const { items, toggleStatusAceitar, withdrawItem } = useStock();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedRows, setExpandedRows] = useState({ 1: true });
   const [selectedFilter, setSelectedFilter] = useState('Todos');
@@ -23,9 +23,7 @@ export const VisaoGeral = () => {
       (item.motivo && item.motivo.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (selectedFilter === 'Todos') return matchesSearch;
-    if (selectedFilter === 'Gama') return matchesSearch && item.unidade === 'Gama';
-    if (selectedFilter === 'Devolução') return matchesSearch && item.devolucao;
-    return matchesSearch;
+    return matchesSearch && item.categoria === selectedFilter;
   });
 
   return (
@@ -68,25 +66,22 @@ export const VisaoGeral = () => {
           </div>
 
           {showFilterDropdown && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl py-1 min-w-[150px] z-50 border border-gray-100">
+            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl py-1 min-w-[170px] z-50 border border-gray-100">
               <button
                 onClick={() => { setSelectedFilter('Todos'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+                className={`w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 ${selectedFilter === 'Todos' ? 'font-bold bg-blue-50/50' : ''}`}
               >
-                Todos
+                Todas Categorias
               </button>
-              <button
-                onClick={() => { setSelectedFilter('Gama'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-              >
-                Unidade Gama
-              </button>
-              <button
-                onClick={() => { setSelectedFilter('Devolução'); setShowFilterDropdown(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-              >
-                Com Devolução
-              </button>
+              {['Informática', 'Hardware', 'Ferramentas', 'Construção', 'Periféricos'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setSelectedFilter(cat); setShowFilterDropdown(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 ${selectedFilter === cat ? 'font-bold bg-blue-50/50' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -139,20 +134,37 @@ export const VisaoGeral = () => {
                       >
                         {/* Retirada */}
                         <button
-                          onClick={() => alert(`Retirada efetuada para ${row.item}`)}
-                          className="w-8 h-8 rounded-md bg-[#103ae5] hover:bg-[#0c2ec0] text-white flex items-center justify-center shadow transition-transform active:scale-95 cursor-pointer"
-                          title="Retirada do estoque"
+                          disabled={row.statusRetirada}
+                          onClick={() => {
+                            if (!row.statusRetirada) {
+                              withdrawItem(row.id);
+                              alert(`Retirada efetuada para ${row.item}`);
+                            }
+                          }}
+                          className={`w-8 h-8 rounded-md text-white flex items-center justify-center shadow transition-transform ${
+                            row.statusRetirada
+                              ? 'bg-[#a4abb5] cursor-default opacity-90'
+                              : 'bg-[#103ae5] hover:bg-[#0c2ec0] active:scale-95 cursor-pointer'
+                          }`}
+                          title={row.statusRetirada ? 'Retirada realizada' : 'Retirada do estoque'}
                         >
                           <ArrowUp size={18} strokeWidth={3} />
                         </button>
 
                         {/* Aceitar / Aprovado */}
                         <button
-                          onClick={() => toggleStatusAceitar(row.id)}
-                          className={`w-8 h-8 rounded-md text-white flex items-center justify-center shadow transition-transform active:scale-95 cursor-pointer ${
-                            row.statusAceitar ? 'bg-[#0ec015] hover:bg-[#0da913]' : 'bg-[#a4abb5] hover:bg-[#9199a4]'
+                          disabled={row.statusAceitar}
+                          onClick={() => {
+                            if (!row.statusAceitar) {
+                              toggleStatusAceitar(row.id);
+                            }
+                          }}
+                          className={`w-8 h-8 rounded-md text-white flex items-center justify-center shadow transition-transform ${
+                            row.statusAceitar
+                              ? 'bg-[#a4abb5] cursor-default opacity-90'
+                              : 'bg-[#0ec015] hover:bg-[#0da913] active:scale-95 cursor-pointer'
                           }`}
-                          title={row.statusAceitar ? 'Solicitação Aceita' : 'Aprovado'}
+                          title={row.statusAceitar ? 'Aprovado' : 'Aceitar solicitação'}
                         >
                           <Circle size={18} strokeWidth={3} />
                         </button>
@@ -197,20 +209,6 @@ export const VisaoGeral = () => {
                           >
                             <div className="text-[11px] font-semibold text-gray-700">Quem Solicitou</div>
                             <div className="text-[13px] font-bold text-gray-900 mt-1">{row.solicitante || 'Andre Felipe Maciel'}</div>
-                          </div>
-
-                          {/* Devolução */}
-                          <div 
-                            className="bg-[#cbd1d8] rounded-xl py-2 px-8 flex flex-col items-center justify-center border border-[#bcc2cb] shadow-xs min-w-[170px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="text-[11px] font-semibold text-gray-700 mb-1">Devolução</div>
-                            <input
-                              type="checkbox"
-                              checked={row.devolucao || false}
-                              readOnly
-                              className="w-4 h-4 rounded accent-[#0b499e] cursor-default"
-                            />
                           </div>
                         </div>
                       </td>

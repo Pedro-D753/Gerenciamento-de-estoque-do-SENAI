@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StockProvider } from './context/StockContext';
 import { Layout } from './components/Layout';
+import { Login } from './pages/Login';
 import { VisaoGeral } from './pages/VisaoGeral';
 import { Historico } from './pages/Historico';
 import { Cadastro } from './pages/Cadastro';
@@ -11,6 +12,7 @@ export default function App() {
     <StockProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<VisaoGeral />} />
             <Route path="historico" element={<Historico />} />

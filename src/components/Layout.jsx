@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { SenaiLogo } from './SenaiLogo';
-import { Menu, Circle, ArrowUp, X } from 'lucide-react';
+import { Menu, Circle, ArrowUp, X, LogOut } from 'lucide-react';
 
 export const Layout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isCadastroPage = location.pathname.startsWith('/cadastro');
 
@@ -121,13 +122,21 @@ export const Layout = () => {
             </NavLink>
           </nav>
 
-          {/* Footer Button */}
-          <div className="mt-auto p-2.5">
+          {/* Footer Buttons */}
+          <div className="mt-auto p-2.5 flex flex-col gap-2">
             <button
               onClick={() => setShowManualModal(true)}
               className="bg-[#ff601c] hover:bg-[#e54f10] text-white rounded-lg p-2 text-xs font-bold w-full text-center transition shadow-md hover:shadow-lg cursor-pointer"
             >
               {isSidebarExpanded ? 'Manual de Usuário' : 'Manual'}
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="bg-black/25 hover:bg-red-600/80 text-white rounded-lg p-2 text-xs font-semibold w-full flex items-center justify-center gap-1.5 transition cursor-pointer"
+              title="Sair do Sistema"
+            >
+              <LogOut size={15} />
+              {isSidebarExpanded && <span>Sair</span>}
             </button>
           </div>
         </aside>
@@ -159,7 +168,7 @@ export const Layout = () => {
                 <strong>2. Histórico (H):</strong> Visualize a listagem completa do inventário com quantidades em estoque, reservas, histórico de entradas/saídas e tempo de permanência em prateleira.
               </p>
               <p>
-                <strong>3. Cadastro (C):</strong> Cadastre novos itens com fotos, especificações técnicas detalhadas, leitor/código de barras e opção de controle de devolução.
+                <strong>3. Cadastro (C):</strong> Cadastre novos itens com fotos, especificações técnicas detalhadas e leitor/código de barras.
               </p>
             </div>
             <div className="flex justify-end mt-6">

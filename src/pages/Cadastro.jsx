@@ -14,7 +14,6 @@ export const Cadastro = () => {
     unidade: '',
     categoria: '',
     medida: 'GB',
-    devolucao: false,
     descricao: '',
     marca: '',
     ano: '',
@@ -37,7 +36,6 @@ export const Cadastro = () => {
         unidade: editingItem.unidade || 'Gama',
         categoria: editingItem.categoria || '',
         medida: editingItem.medida || 'GB',
-        devolucao: editingItem.devolucao || false,
         descricao: editingItem.descricao || '',
         marca: editingItem.caracteristicas?.marca || '',
         ano: editingItem.caracteristicas?.ano || '',
@@ -68,7 +66,6 @@ export const Cadastro = () => {
       unidade: '',
       categoria: '',
       medida: 'GB',
-      devolucao: false,
       descricao: '',
       marca: '',
       ano: '',
@@ -98,7 +95,6 @@ export const Cadastro = () => {
         unidade: formState.unidade,
         categoria: formState.categoria,
         medida: formState.medida,
-        devolucao: formState.devolucao,
         descricao: formState.descricao,
         caracteristicas: {
           marca: formState.marca,
@@ -125,10 +121,9 @@ export const Cadastro = () => {
         tempoEstoque: 'Recém cadastrado',
         dataPrevista: 'A definir',
         solicitante: 'Usuário Estoquista',
-        devolucao: formState.devolucao,
         statusApproved: false,
         statusRetirada: false,
-        statusAceitar: true,
+        statusAceitar: false,
         statusRecusar: false,
         categoria: formState.categoria,
         medida: formState.medida,
@@ -278,7 +273,7 @@ export const Cadastro = () => {
               </div>
             </div>
 
-            {/* Medida, Devolução e Botões de Ação */}
+            {/* Medida e Botões de Ação */}
             <div className="flex flex-wrap items-center gap-4 mt-2">
               <div className="flex flex-col gap-1 min-w-[90px]">
                 <label className="text-sm font-bold text-gray-900">
@@ -296,18 +291,6 @@ export const Cadastro = () => {
                   <option value="KG">KG</option>
                   <option value="M2">M²</option>
                 </select>
-              </div>
-
-              <div className="flex flex-col items-center gap-1 min-w-[80px]">
-                <label className="text-sm font-bold text-gray-900">
-                  Devolução
-                </label>
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-[#bcc2cb] accent-[#0b499e] cursor-pointer mt-1"
-                  checked={formState.devolucao}
-                  onChange={(e) => setFormState({ ...formState, devolucao: e.target.checked })}
-                />
               </div>
 
               {/* Action Buttons */}
