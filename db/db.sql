@@ -19,14 +19,6 @@ CREATE TABLE IF NOT EXISTS categoria (
 );
 
 -- -----------------------------------------------------
--- Table departamento
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS departamento (
-  id SERIAL PRIMARY KEY NOT NULL,
-  nome VARCHAR(255) NOT NULL
-);
-
--- -----------------------------------------------------
 -- Table produto
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS produto (
@@ -37,15 +29,11 @@ CREATE TABLE IF NOT EXISTS produto (
   unidade_medida VARCHAR(50) NOT NULL,
   codigo_barra TEXT NOT NULL,
   categoria_id INT NOT NULL,
-  departamento_id INT NOT NULL,
  
   CONSTRAINT fk_produto_categoria
     FOREIGN KEY (categoria_id)
     REFERENCES categoria (id),
  
-  CONSTRAINT fk_produto_departamento
-    FOREIGN KEY (departamento_id)
-    REFERENCES departamento (id)
 );
 
 -- -----------------------------------------------------
@@ -116,11 +104,6 @@ CREATE TABLE IF NOT EXISTS registro (
     REFERENCES estoque (id)   
 );
 
-
--- -----------------------------------------------------
--- Table solicitacao
--- -----------------------------------------------------
-
 -- -----------------------------------------------------
 -- ENUM's
 -- -----------------------------------------------------
@@ -176,4 +159,50 @@ CREATE TABLE IF NOT EXISTS contrato (
     REFERENCES fornecedor (id)
 );
 
+-- -----------------------------------------------------
+-- Table log
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS log (
+  id SERIAL PRIMARY KEY NOT NULL,
+  matricula_quem_fez INT NOT NULL,
+  acao TEXT NOT NULL,
+  tb_acao VARCHAR(100) NOT NULL,
+  dt_acao TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- -----------------------------------------------------
+-- Insert Dados - categoria
+-- -----------------------------------------------------
+INSERT INTO categoria(nome) VALUES
+("PRODUÇÃO ALIMENTAR"),
+("ELETRÔNICA E AUTOMAÇÃO"),
+("MANUNTENÇÃO E OPERAÇÃO"),
+("CONSTRUÇÃO DE OBRAS"),
+("SISTEMA DE ENERGIA"),
+("ELETRÔNICA E AUTOMAÇÃO"),
+("ENERGIA GTD"),
+("ENERGI RENOVÁVEIS"),
+("COMERCIAL"),
+("GERENCIAL"),
+("OPERAÇÃO FINANCEIRAS"),
+("DESIGN"),
+("MANUFATURA"),
+("METALMECÂNICA"),
+("ELETRÔNICA E AUTOMAÇÃO"),
+("MENUTENÇÃO E OPERAÇÃO"),
+("SISTEMAS DE ENERGIA"),
+("SEGURANÇA"),
+("INFRAESTRUTURA DE INFORMAÇÃO E COMUNICAÇÃO"),
+("GESTÃO E SEGURANÇA"),
+("DESENVOLVIMENTOS DE SITEMAS"),
+("TÊXTIL E VESTUÁRIO");
+
+-- -----------------------------------------------------
+-- Insert Dados - unidade
+-- -----------------------------------------------------
+INSERT INTO unidade(nome) VALUES
+("SIG"),
+("TAGUATINGA"),
+("SOBRADINHO"),
+("GAMA");
 
