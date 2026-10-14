@@ -9,7 +9,8 @@
       "badgeValue": 2,
       "badgeType": "blue",
       "location": "Taguatinga",
-      "approved": false
+      "approved": false,
+      "AreaTecnica": "producao_alimenticia"
     },
     {
       "id": "2",
@@ -20,7 +21,20 @@
       "badgeValue": 1,
       "badgeType": "blue",
       "location": "Gama",
-      "approved": false
+      "approved": false,
+      "AreaTecnica": "producao_alimenticia"
+    },
+    {
+      "id": "3",
+      "code": "001015148",
+      "name": "pilha",
+      "image": "https://via.placeholder.com/50",
+      "stock": 30,
+      "badgeValue": 1,
+      "badgeType": "blue",
+      "location": "Gama",
+      "approved": false,
+      "AreaTecnica": "construcao_de_obras/sistemas_de_energia"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
