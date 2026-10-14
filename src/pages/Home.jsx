@@ -165,7 +165,7 @@ export default function Solicitacao() {
                   />
                   <button 
                   onClick={mudarFiltro}
-                  className={`${!filtro ? "sm:w-auto flex" : "h-10 w-100 absolute" }  items-center justify-center gap-2 bg-[#CDCDCD] hover:bg-[#BFBFBF] text-gray-800 font-semibold px-5 py-2.5 rounded-xl transition-colors`}>
+                  className={`${!filtro ? "w-auto flex" : "h-10 w-100 absolute" }  items-center justify-center gap-2 bg-[#CDCDCD] hover:bg-[#BFBFBF] text-gray-800 font-semibold px-5 py-2.5 rounded-xl transition-colors`}>
                     <ChevronDown className="w-5 h-5 text-gray-700" />
                     <span>Filtro</span>
                   </button>
