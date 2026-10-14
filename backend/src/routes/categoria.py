@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Categoria"],
 
     responses={
-        404:{"description":"Essa categoria não foi encontrado."}
+        404:{"description":"Essa categoria não foi encontrado."},
     }
 )
 
@@ -17,8 +17,10 @@ router = APIRouter(
 @router.get("/")
 async def pega_categoria(session: Session = Depends(get_sesion)):
     """\n Pegas todas as categorias criadas"""
+    #verifica se o user logado é um admin
+    
     return categoria.ler_categoria(session)
-
+   
 
 @router.get("/{id}")
 async def pega_categoria_id(id: int, session: Session = Depends(get_sesion)):

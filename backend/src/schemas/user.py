@@ -15,6 +15,9 @@ class UserLoginSchema(BaseModel):
     matricula: int
     senha: str
 
+class UserResteSenhaSchema(BaseModel):
+    senha: str
+
 class UserReadSchema(BaseModel):
     id: int
     nome: str

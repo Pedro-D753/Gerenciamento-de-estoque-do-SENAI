@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, Numeric, Date, ForeignKey, Boolean
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 from datetime import date
 
 class EstoqueModel(Base):

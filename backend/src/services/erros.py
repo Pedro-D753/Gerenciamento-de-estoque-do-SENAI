@@ -18,6 +18,14 @@ class ErroJwtInvalido(HTTPException):
             status_code=401,
             detail="JWT inválido."
         )
+
+class ErroJwtInvalidoEmail(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=401,
+            detail="JWT inválido."
+        )
 #endregion
 
 #region user

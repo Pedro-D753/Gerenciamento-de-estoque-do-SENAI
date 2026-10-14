@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, Boolean, Text, Enum, DateTime
 from datetime import datetime
 import enum
 
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class SolicitacaoEstadoEnum(enum.Enum):
     #SA = solicitação normal

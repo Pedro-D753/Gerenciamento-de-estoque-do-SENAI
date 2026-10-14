@@ -1,8 +1,9 @@
 from ..models.user import UserModel
 from .erros import ErroInesperado, ErroUserExiste, ErroUserNaoEncontrado
-from ..config import SECRET_KEY, ALG, TIMER
+from ..config import SECRET_KEY, ALG, TIMER_ACCESS, TIMER_REFRESH
 from jose import jwt
-from datetime import datetime, timezone
+from uuid import uuid4
+from datetime import datetime, timezone, timedelta
 
 #region FUNCAO CRIAR USUARIO
 def criar_usuario(session, dados):
@@ -41,19 +42,24 @@ def ler_usuario_id(session, id):
 #endregion
 
 #region FUNCAO JWT
-def criar_token(id_user: int, is_admin : bool= False):
+def criar_token(id_user: int, is_admin : bool= False, refresh_token : bool = False, is_reste_senha: bool = False):
     try:
-        
-        dt_expi = datetime.now(timezone.utc) + TIMER
 
-        dic_info = None
+        dt_expi : datetime
+
+        if refresh_token == False:
+            dt_expi = datetime.now(timezone.utc) + TIMER_ACCESS
+        else:
+            dt_expi = datetime.now(timezone.utc) + TIMER_REFRESH
 
         #O dic_info está configurado com base no padrão JWT: https://www.jwt.io/
         dic_info = {
-                'sub': str(id_user),
-                'exp': dt_expi, 
-                "is_admin" : is_admin,
-                }
+            'sub': str(id_user),
+            'exp': dt_expi, 
+            "is_admin" : is_admin,
+            "is_reste_senha": is_reste_senha,
+            "jit": str(uuid4())
+            }
         
         #Cria o JWT
         jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALG)#type: ignore
@@ -62,25 +68,25 @@ def criar_token(id_user: int, is_admin : bool= False):
     except Exception as e:
         raise ErroInesperado(e)
 
-def refresh_token(id_user: int): 
-    access_token = criar_token(id_user)
-
-    return {
-        "access_token": access_token,
-        "token_type": "Bearer"
-    }
-
 def autenticar(session, dados):
     # verifica se existe
     existe = session.query(UserModel).filter(UserModel.matricula == dados.matricula).first()
 
     if not existe:
-        return False
+        raise ErroUserNaoEncontrado(session)
 
-    if not UserModel.verificarSenha(dados.senha, existe.senha):
-        return False
+    if not existe.verificarSenha(dados.senha):
+        raise ErroUserNaoEncontrado(session)
 
-    return criar_token(existe.id, existe.is_admin)
+
+    access_token = criar_token(existe.id, existe.is_admin)
+    refresh_token = criar_token(existe.id, existe.is_admin, True)
+
+    return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
 #endregion
 
 #region FUNCAO ATUALIZAR USUARIO 

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class ProdutoModel(Base):
     __tablename__ = "produto"

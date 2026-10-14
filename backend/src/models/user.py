@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
 from passlib.hash import sha256_crypt as sha256
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class UserModel(Base):
     __tablename__ = "user"
@@ -9,7 +9,7 @@ class UserModel(Base):
     nome = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
     senha = Column(String(255), nullable=False)
-    matricula = Column(Integer, nullable=True)
+    matricula = Column(Integer, nullable=True, unique=True)
     is_admin = Column(Boolean, nullable=False, default=0)
     is_ativo = Column(Boolean, nullable=False, default=1)
 
@@ -27,8 +27,8 @@ class UserModel(Base):
         self.unidade_id = unidade
 
 
-    def verificarSenha(self, hash) -> bool:
-        return sha256.encrypt(hash, self.senha)
+    def verificarSenha(self, senha) -> bool:
+        return sha256.verify(senha, self.senha)
 
     def novaSenha(self, nova_senha) -> None:
         self.senha = sha256.encrypt(nova_senha)

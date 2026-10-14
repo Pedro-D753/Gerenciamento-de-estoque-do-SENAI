@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, Integer, ForeignKey, Text, Boolean
 from datetime import datetime
 
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class RegistroModel(Base):
     __tablename__ = "registro"

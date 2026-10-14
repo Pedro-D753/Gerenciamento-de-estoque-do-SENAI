@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class EstoqueSolicitacaoModel(Base):
     __tablename__ = "estoque_solicitacao"

@@ -9,6 +9,7 @@ from .unidade import router as unidade_router
 from .user import router as user_router 
 from .estoque import router as estoque_router 
 from .registro import router as registro_router 
+from .auth import router as auth_router
 
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
@@ -29,6 +30,7 @@ async def home_to_doc():
     #Toda vez que o usuário acessar essa rota, ele será redirecionado automaticamente para /docs.
     return RedirectResponse(url='/docs')
 
+route_manager.include_router(auth_router) 
 route_manager.include_router(categoria_router) 
 route_manager.include_router(contrato_router) 
 route_manager.include_router(departamento_router) 
@@ -39,4 +41,3 @@ route_manager.include_router(registro_router)
 route_manager.include_router(solicitacao_router) 
 route_manager.include_router(unidade_router) 
 route_manager.include_router(user_router) 
-route_manager.include_router(estoque_router) 

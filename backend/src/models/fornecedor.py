@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class FornecedorModel(Base):
     __tablename__ = "fornecedor"

@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from pathlib import Path
 from os import getenv
+from datetime import timedelta
+from fastapi.security import OAuth2PasswordBearer
 from urllib.parse import quote_plus
 
 class EnvVaulesErros(Exception): pass
@@ -38,24 +40,29 @@ SECRET_KEY = getenv("SECRET_KEY", None)
 if SECRET_KEY == None:
     raise EnvVaulesErros("O campo \"SECRET_KEY\" não pode ser null(None) ou ser apenas espaços.")
 
-#Poder deichar o padrão sha256 é não deichar como var de ambiente. Ou não?
 ALG = "HS256"
 
-'''
-ALGORITHM = getenv("ALGORIYHM", None)
-if ALGORITHM.strip() == "" or ALGORITHM == None:
-    raise EnvVaulesErros("O campo \"ALGORITHM\" não pode ser null(None) ou ser apenas espaços.")
-'''
+TIMER_REFRESH = timedelta(days=7)
+TIMER_ACCESS = timedelta(minutes=30)
 
-#Poder deichar o padrão de 5 minutos é não deichar como var de ambiente. Ou não?
-#Em minutos
-TIMER = 5
-
-'''
-try:
-    TIMER = int(getenv("TIMER", 5))
-except:
-    raise EnvVaulesErros("O campo \"TIMER\" só pode ser int.")
-'''
 #endregion 
 
+
+#region Config Email
+EMAIL_EMISOR = getenv("EMAIL_EMISOR", None)
+if EMAIL_EMISOR == None:
+    raise EnvVaulesErros("O campo \"EMAIL_EMISOR\" não pode ser null(None) ou ser apenas espaços.")
+
+EMAIL_SENHA = getenv("EMAIL_SENHA", None)
+if EMAIL_SENHA == None:
+    raise EnvVaulesErros("O campo \"EMAIL_SENHA\" não pode ser null(None) ou ser apenas espaços.")
+
+DNS_RETORNO = getenv("DNS_RETORNO", None)
+if DNS_RETORNO == None:
+    raise EnvVaulesErros("O campo \"DNS_RETORNO\" não pode ser null(None) ou ser apenas espaços.")
+
+
+
+#endregion
+
+oauth2_schemas= OAuth2PasswordBearer(tokenUrl="/auth/login")

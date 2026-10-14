@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Date, ForeignKey
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 from datetime import date
 
 class ContratoModel(Base):

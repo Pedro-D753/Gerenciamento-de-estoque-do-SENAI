@@ -1,6 +1,6 @@
 # Configuração que já garante que as criações de todas tabelas
 
-from ..db.conection import Base, engine
+from ..db.postgresql_conection import Base, engine
 from .user import UserModel
 from .unidade import UnidadeModel
 from .solicitacao import SolicitacaoEstadoEnum, SolicitacaoTipoEnum, SolicitacaoModel

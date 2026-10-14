@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-from ..db.conection import Base
+from ..db.postgresql_conection import Base
 
 class DepartamentoModel(Base):
     __tablename__ = "departamento"
