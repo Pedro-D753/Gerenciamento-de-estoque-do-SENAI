@@ -5,8 +5,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Importe de páginas
 import Home from './pages/Home';
 //import Estatistica from './pages/Estatistica';
-import Solicitacao from '/src/pages/Solicitacao.jsx';
-// import GerenciarSolicitacao from './pages/GerenciarSolicitacao';
+//import Solicitacao from './pages/Solicitacao.jsx';
+//import Gerenciar from './pages/Gerenciar';
 // import HistoricoSolicitacao from './pages/HistoricoSolicitacao';
 // import ItemDescricao from './pages/ItemDescricao';
 
@@ -15,9 +15,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/solicitacao" element={<Solicitacao />} />
-        {/* <Route path="/estatistica" element={<Estatistica />} />
-        <Route path="/gerenciar_solicitacao" element={<GerenciarSolicitacao />} />
+        {/*<Route path="/solicitacao" element={<Solicitacao />} />
+        <Route path="/estatistica" element={<Estatistica/>} />
+        <Route path="/gerenciar_solicitacao" element={<Gerenciar/>} />
+        <Route path="/" element={<Home />} />
         <Route path="/historico_solicitacao" element={<HistoricoSolicitacao />} />
         <Route path="/item/:id" element={<ItemDescricao />} /> */}
 

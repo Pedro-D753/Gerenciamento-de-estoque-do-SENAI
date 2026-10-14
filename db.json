@@ -1,0 +1,27 @@
+{
+  "produtos": [
+    {
+      "id": "1",
+      "code": "0010151110",
+      "name": "Pendrive 64GB",
+      "image": "https://via.placeholder.com/50",
+      "stock": 23,
+      "badgeValue": 2,
+      "badgeType": "blue",
+      "location": "Taguatinga",
+      "approved": false
+    },
+    {
+      "id": "2",
+      "code": "001015148",
+      "name": "SSD 500 Gigas",
+      "image": "https://via.placeholder.com/50",
+      "stock": 15,
+      "badgeValue": 1,
+      "badgeType": "blue",
+      "location": "Gama",
+      "approved": false
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

@@ -25,7 +25,6 @@ export default function Home() {
     loadData();
   }, []);
 
-
   // Filter items based on search query (Checking ID, Codigo U.F, Item, Quantidade, Reserva, Unidade)
   const filteredItems = items.filter(item => {
     const query = searchTerm.toLowerCase().trim();
@@ -33,14 +32,14 @@ export default function Home() {
       return selectedUnidade === 'Todas' || item.unidade === selectedUnidade;
     }
 
-    const matchesSearch = 
+    const matchesSearch =
       item.item.toLowerCase().includes(query) ||
       item.codigo.toLowerCase().includes(query) ||
       item.id.toString().includes(query) ||
       item.quantidade.toString().includes(query) ||
       item.reserva.toString().includes(query) ||
       item.unidade.toLowerCase().includes(query);
-    
+
     const matchesUnidade = selectedUnidade === 'Todas' || item.unidade === selectedUnidade;
 
     return matchesSearch && matchesUnidade;
@@ -48,14 +47,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col font-sans antialiased text-slate-800">
-      
+
       {/* Top Header */}
       <header className="bg-white px-6 py-3 flex items-center justify-between shadow-xs z-10 w-full border-b border-slate-200">
         <div className="flex items-center space-x-3">
           {/* SENAI Logo as Image */}
-          <img 
-            src="/Senai.png" 
-            alt="SENAI Logo" 
+          <img
+            src="/Senai.png"
+            alt="SENAI Logo"
             className="h-10 md:h-12 object-contain cursor-pointer"
             onClick={() => navigate('/')}
             onError={(e) => {
@@ -78,22 +77,20 @@ export default function Home() {
 
       {/* Main Container Layout - Fills 100% space */}
       <div className="flex flex-1 p-4 md:p-6 gap-4 md:gap-6 bg-slate-100 w-full">
-        
+
         {/* Sidebar with Sandwich Menu Expand/Collapse */}
-        <aside 
-          className={`bg-[#0C3B7C] rounded-2xl p-3 flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 ${
-            isSidebarCollapsed ? 'w-16 md:w-20 items-center' : 'w-64'
-          }`}
+        <aside
+          className={`bg-[#0C3B7C] rounded-2xl p-3 flex flex-col justify-between shadow-lg shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-16 md:w-20 items-center' : 'w-64'
+            }`}
         >
           <div className="w-full space-y-4">
-            
+
             {/* Sandwich Toggle Button */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
-              className={`w-full flex items-center justify-center p-3 text-white rounded-xl hover:bg-white/10 transition-colors ${
-                isSidebarCollapsed ? 'hover:bg-white/20' : 'justify-between'
-              }`}
+              className={`w-full flex items-center justify-center p-3 text-white rounded-xl hover:bg-white/10 transition-colors ${isSidebarCollapsed ? 'hover:bg-white/20' : 'justify-between'
+                }`}
             >
               <Menu className="w-7 h-7" />
               {!isSidebarCollapsed && <span className="font-semibold text-sm uppercase tracking-wider text-slate-200">Menu</span>}
@@ -110,13 +107,11 @@ export default function Home() {
                   navigate('/');
                 }}
                 title="Visão Geral"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
-                } ${
-                  activeTab === 'Visão Geral'
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                  } ${activeTab === 'Visão Geral'
                     ? 'bg-[#6B84A6] text-white shadow-md'
                     : 'text-white hover:bg-white/10'
-                }`}
+                  }`}
               >
                 {isSidebarCollapsed ? (
                   <span>V</span>
@@ -135,9 +130,8 @@ export default function Home() {
                   navigate('/estatistica');
                 }}
                 title="Estatísticas"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
-                } `}
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                  } `}
               >
                 {isSidebarCollapsed ? (
                   <span>E</span>
@@ -156,13 +150,11 @@ export default function Home() {
                   navigate('/solicitacao');
                 }}
                 title="Solicitação"
-                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${
-                  isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
-                } ${
-                  activeTab === 'Solicitação'
+                className={`w-full rounded-xl font-medium transition-all duration-200 flex items-center ${isSidebarCollapsed ? 'justify-center p-3 text-xl font-bold' : 'px-4 py-3 gap-3 text-base'
+                  } ${activeTab === 'Solicitação'
                     ? 'bg-[#6B84A6] text-white shadow-md'
                     : 'text-white hover:bg-white/10'
-                }`}
+                  }`}
               >
                 {isSidebarCollapsed ? (
                   <span>S</span>
@@ -180,9 +172,8 @@ export default function Home() {
           <button
             onClick={() => setShowManualModal(true)}
             title="Manual de Usuário"
-            className={`w-full bg-[#FF652F] hover:bg-[#e85522] text-white font-semibold rounded-xl text-center shadow-md transition-all flex items-center justify-center ${
-              isSidebarCollapsed ? 'p-3' : 'py-3.5 px-4 gap-2'
-            }`}
+            className={`w-full bg-[#FF652F] hover:bg-[#e85522] text-white font-semibold rounded-xl text-center shadow-md transition-all flex items-center justify-center ${isSidebarCollapsed ? 'p-3' : 'py-3.5 px-4 gap-2'
+              }`}
           >
             <BookOpen className="w-5 h-5 shrink-0" />
             {!isSidebarCollapsed && <span className="truncate">Manual de Usuário</span>}
@@ -191,10 +182,10 @@ export default function Home() {
 
         {/* Content Panel - Fills remaining width */}
         <main className="flex-1 bg-[#D8DCE3] rounded-3xl p-4 md:p-6 flex flex-col justify-start shadow-sm border border-slate-300/70 overflow-hidden w-full">
-          
+
           {/* Controls Bar: Search Input + Blue Search Icon + Filter Dropdown */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 w-full">
-            
+
             {/* Search Input Group */}
             <div className="flex items-center gap-3 w-full sm:w-auto flex-1 max-w-md">
               <div className="relative flex-1">
@@ -206,7 +197,7 @@ export default function Home() {
                   className="w-full bg-[#CBD0D8] text-slate-800 placeholder-slate-600 px-6 py-2.5 rounded-full outline-none border border-slate-300/60 focus:ring-2 focus:ring-[#0C3B7C] transition-all text-center sm:text-left font-medium"
                 />
                 {searchTerm && (
-                  <button 
+                  <button
                     onClick={() => setSearchTerm('')}
                     className="absolute right-4 top-2.5 text-slate-500 hover:text-slate-800 text-sm font-bold"
                   >
@@ -216,8 +207,8 @@ export default function Home() {
               </div>
 
               {/* Blue Circular Search Button */}
-              <button 
-                onClick={() => {}} 
+              <button
+                onClick={() => { }}
                 aria-label="Buscar"
                 className="bg-[#0C3B7C] hover:bg-[#092c5c] text-white p-2.5 rounded-full shadow-md transition-all active:scale-95 flex items-center justify-center shrink-0"
               >
@@ -255,13 +246,16 @@ export default function Home() {
                         setSelectedUnidade(unidade);
                         setShowFilterMenu(false);
                       }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        selectedUnidade === unidade
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedUnidade === unidade
                           ? 'bg-blue-50 text-[#0C3B7C] font-semibold'
                           : 'text-slate-700 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
-                      <span>{unidade}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{unidade}</span>
+                        <span className="text-xs text-slate-400 font-normal">Av. Principal, 1000 - Centro</span>
+                      </div>
+
                       {selectedUnidade === unidade && <span className="w-2 h-2 rounded-full bg-[#0C3B7C]"></span>}
                     </button>
                   ))}
@@ -274,7 +268,7 @@ export default function Home() {
           {/* Table Container - Fills full width */}
           <div className="w-full overflow-x-auto flex-1">
             <div className="min-w-[750px] w-full">
-              
+
               {/* Header Row */}
               <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-[#D0D5DE]/80 text-slate-800 font-semibold text-sm rounded-t-xl text-center border-b border-slate-300/80">
                 <div className="col-span-1 border-r border-slate-300/70 pr-2 flex items-center justify-center">ID</div>
@@ -310,11 +304,11 @@ export default function Home() {
                       </div>
 
                       {/* Item: Image fixed on the left, text centered in the middle */}
-                      <div className="backgroung-color col-span-3 border-r border-slate-400/40 px-2 relative flex items-center justify-center min-h-[40px]">
+                      <div className="col-span-3 border-r border-slate-400/40 px-2 relative flex items-center justify-center min-h-[40px]">
                         {/* Fixed Left Image */}
                         <div className="absolute left-3 w-10 h-10 rounded-lg overflow-hidden bg-slate-200 border border-slate-300/80 shrink-0 flex items-center justify-center shadow-xs">
-                          <img 
-                            src={item.image} 
+                          <img
+                            src={item.image}
                             alt={item.item}
                             className="w-full h-full object-cover"
                             onError={(e) => {
