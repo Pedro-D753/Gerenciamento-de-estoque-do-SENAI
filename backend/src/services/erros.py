@@ -207,3 +207,21 @@ class ErroRegistroExiste(HTTPException):
             detail="Essa registro já existe."
         )
 #endregion
+
+#region estoque solicitado
+class ErroEstoqueSolicitadoExiste(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=409,
+            detail="Essa solicitacao de estoque já existe."
+        )
+
+class ErroEstoqueSolicitadoNaoEncontrado(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=404,
+            detail="Essa solicitacao não foi encontrado."
+        )
+#endregion

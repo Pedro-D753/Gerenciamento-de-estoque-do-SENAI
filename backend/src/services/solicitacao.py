@@ -1,5 +1,6 @@
 from ..models.solicitacao import SolicitacaoModel
 from .erros import ErroInesperado, ErroSolicitacaoExiste, ErroSolicitacaoNaoEncontrado
+from .estoque_solicitado import criar_estoque_solicitado, ler_estoque_solicitado, ler_estoque_solicitado_id, atualizar_estoque_solicitado, excluir_estoque_solicitado
 
 #region FUNCAO CRIAR SOLICITACAO
 def criar_solicitacao(session, dados):
@@ -22,6 +23,8 @@ def criar_solicitacao(session, dados):
         # adiciona o objeto no banco e salva
         session.add(solicitacao)
         session.commit()
+
+        criar_estoque_solicitado(session, dados)
 
         return {"mensagem":"Solicitacao criada com sucesso!"}
     
@@ -61,7 +64,7 @@ def atualizar_solicitacao(session, id, dados_new):
     try:
         # atualiza o objeto Solicitacao
         existe_old.is_aceito = dados_new.is_aceito
-        existe_old.obs_solicitacao = dados_new.obs_solicitacao
+        existe_old.obs_solicita = dados_new.obs_solicita
         existe_old.obs_recusa = dados_new.obs_recusa
         existe_old.tipo = dados_new.tipo
         existe_old.estado = dados_new.estado
@@ -71,6 +74,8 @@ def atualizar_solicitacao(session, id, dados_new):
         # adiciona o objeto no banco e salva
         session.commit()
         session.refresh(existe_old)
+
+        atualizar_estoque_solicitado(session, id, dados_new)
 
         return {"mensagem":"Solicitacao atualizada com sucesso!"}
 
@@ -90,6 +95,8 @@ def excluir_solicitacao(session, id):
         # deleta o objeto e salva as mudancas no banco
         session.delete(existe)
         session.commit()
+
+        excluir_estoque_solicitado(session, id)
 
         return {"mensagem":"Solicitacao foi excluida com sucesso!"}
     
