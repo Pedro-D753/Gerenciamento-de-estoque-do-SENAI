@@ -5,7 +5,7 @@ class UserSchema(BaseModel):
     nome: str
     email: EmailStr
     senha: str
-    matricula: int
+    matricula: str
     is_admin: bool
     is_ativo: bool
 
@@ -23,7 +23,7 @@ class UserReadSchema(BaseModel):
     nome: str
     email: EmailStr
     senha: str
-    matricula: int
+    matricula: str
     is_admin: bool
     is_ativo: bool
 
@@ -32,7 +32,7 @@ class UserReadSchema(BaseModel):
 class UserUpdateSchema(BaseModel):
     nome: Optional[str]
     email: Optional[EmailStr]
-    matricula: Optional[int]
+    matricula: Optional[str]
     senha: Optional[str]
     is_admin: Optional[bool]
     is_ativo: Optional[bool]

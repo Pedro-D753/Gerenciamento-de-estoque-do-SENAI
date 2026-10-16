@@ -48,7 +48,7 @@ def atualizar_categoria(session, id, dados_new):
     # tratamento de erro
     try:
         # cria o objeto categoria
-        existe_old.nome == dados_new.nome
+        existe_old.nome = dados_new.nome
 
         # adiciona o objeto no banco e salva
         session.commit()

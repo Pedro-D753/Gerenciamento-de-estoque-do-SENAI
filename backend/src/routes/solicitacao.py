@@ -18,7 +18,6 @@ async def pega_solicitacao(session: Session = Depends(get_sesion)):
     """\n Pegas todas as solicitacaos criadas"""
     return solicitacao.ler_solicitacao(session)
 
-
 @router.get("/{id}")
 async def pega_solicitacao_id(id: int, session: Session = Depends(get_sesion)):
     """\n Pegas a solicitacao criada com base no id"""

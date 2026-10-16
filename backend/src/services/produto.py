@@ -9,8 +9,7 @@ def criar_produto(session, dados):
                                                 ProdutoModel.img_hash == dados.img_hash,
                                                 ProdutoModel.unidade_medida == dados.unidade_medida,
                                                 ProdutoModel.codigo_barra == dados.codigo_barra,
-                                                ProdutoModel.categoria_id == dados.categoria_id,
-                                                ProdutoModel.departamento_id == dados.departamento_id).first()
+                                                ProdutoModel.categoria_id == dados.categoria_id).first()
 
     if existe:
         raise ErroProdutoExiste(session)
@@ -18,7 +17,7 @@ def criar_produto(session, dados):
     # tratamento de erros
     try:
         # cria o objeto
-        produto = ProdutoModel(dados.nome, dados.descricao, dados.img_hash , dados.unidade_medida, dados.codigo_barra, dados.categoria_id, dados.departamento_id)
+        produto = ProdutoModel(dados.nome, dados.descricao, dados.img_hash , dados.unidade_medida, dados.codigo_barra, dados.categoria_id)
 
         # adiciona no banco e salva
         session.add(produto)
@@ -47,8 +46,7 @@ def atualizar_produto(session, id, dados_new):
                                                     ProdutoModel.img_hash == dados_new.img_hash,
                                                     ProdutoModel.unidade_medida == dados_new.unidade_medida,
                                                     ProdutoModel.codigo_barra == dados_new.codigo_barra,
-                                                    ProdutoModel.categoria_id == dados_new.categoria_id,
-                                                    ProdutoModel.departamento_id == dados_new.departamento_id).first()
+                                                    ProdutoModel.categoria_id == dados_new.categoria_id).first()
 
     if not existe_old:
         raise ErroProdutoNaoEncontrado(session)
@@ -65,7 +63,6 @@ def atualizar_produto(session, id, dados_new):
         existe_old.unidade_medida = dados_new.unidade_medida
         existe_old.codigo_barra = dados_new.codigo_barra
         existe_old.categoria_id = dados_new.categoria_id
-        existe_old.departamento_id = dados_new.departamento_id
 
         # atualiza o banco
         session.commit()

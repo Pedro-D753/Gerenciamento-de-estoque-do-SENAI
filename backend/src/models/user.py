@@ -9,14 +9,14 @@ class UserModel(Base):
     nome = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
     senha = Column(String(255), nullable=False)
-    matricula = Column(Integer, nullable=True, unique=True)
+    matricula = Column(String(255), nullable=True, unique=True)
     is_admin = Column(Boolean, nullable=False, default=0)
     is_ativo = Column(Boolean, nullable=False, default=1)
 
     unidade_id = Column(Integer, ForeignKey("unidade.id"), nullable=False)
     
 
-    def __init__(self, nome: str, email: str, senha: str, matricula: int, unidade: int, is_admin: bool = 0, is_ativo: bool = 1) -> None:
+    def __init__(self, nome: str, email: str, senha: str, matricula: str, unidade: int, is_admin: bool = 0, is_ativo: bool = 1) -> None:
         self.nome = nome
         self.email = email
         self.senha = sha256.encrypt(senha)

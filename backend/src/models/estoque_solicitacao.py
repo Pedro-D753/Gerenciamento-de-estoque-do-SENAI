@@ -10,7 +10,7 @@ class EstoqueSolicitacaoModel(Base):
     solicitacao_id = Column(Integer, ForeignKey("solicitacao.id"), nullable=False)
     
 
-    def __init__(self, estoque: int, departamento: int )-> None:
-        self.categoria_id = estoque
-        self.departamento_id = departamento
+    def __init__(self, estoque: int, solicitacao: int )-> None:
+        self.estoque_id = estoque
+        self.solicitacao_id = solicitacao
     

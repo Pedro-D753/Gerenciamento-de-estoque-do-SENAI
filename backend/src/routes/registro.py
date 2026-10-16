@@ -38,6 +38,6 @@ async def delete_registro(id: int, session: Session = Depends(get_sesion)):
 async def atualizar_registro(id: int, base: BaseRegistro.RegistroUpdateSchema, session: Session = Depends(get_sesion)):
     """\n Atualizar registro"""
 
-    return registro.atualizar_registro(session,id , base)
+    return registro.atualizar_registro(session, id, base)
 
 
