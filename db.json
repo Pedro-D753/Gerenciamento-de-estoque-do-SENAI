@@ -9,7 +9,7 @@
       "badgeValue": 2,
       "badgeType": "blue",
       "location": "Taguatinga",
-      "approved": false
+      "approved": true
     },
     {
       "id": "2",
@@ -20,7 +20,7 @@
       "badgeValue": 1,
       "badgeType": "blue",
       "location": "Gama",
-      "approved": false
+      "approved": true
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
