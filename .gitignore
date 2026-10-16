@@ -22,6 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+db.json
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,react
