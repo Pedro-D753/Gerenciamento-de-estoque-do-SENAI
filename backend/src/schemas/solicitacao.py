@@ -7,7 +7,6 @@ class SolicitacaoSchema(BaseModel):
     is_aceito: bool
     obs_solicita: Optional[str]
     obs_recusa: Optional[str]
-    email_solicitador_hash: str
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
@@ -19,7 +18,6 @@ class SolicitacaoReadSchema(BaseModel):
     is_aceito: bool
     obs_solicita: Optional[str]
     obs_recusa: Optional[str]
-    email_solicitador_hash: str
     tipo: TipoEnum
     estado: EstadoEnum
     qtd_acao: int
@@ -30,7 +28,6 @@ class SolicitacaoUpdateSchema(BaseModel):
     is_aceito: Optional[bool]
     obs_solicita: Optional[str]
     obs_recusa: Optional[str]
-    email_solicitador_hash: Optional[str]
     tipo: Optional[TipoEnum]
     estado: Optional[EstadoEnum]
     qtd_acao: Optional[int]

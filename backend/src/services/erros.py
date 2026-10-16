@@ -1,10 +1,19 @@
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 class ErroInesperado(HTTPException):
     def __init__(self, e, session: Session | None = None):
         if session is not None:
             session.rollback()
+
+        original_error = getattr(e, "orig", None)
+        if isinstance(e, IntegrityError) and getattr(original_error, "pgcode", None) == "23503":
+            super().__init__(
+                status_code=409,
+                detail="Não é possível realizar a operação: há registros vinculados ou uma referência inválida."
+            )
+            return
 
         super().__init__(
             status_code=500,
