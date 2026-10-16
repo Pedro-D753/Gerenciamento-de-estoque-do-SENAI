@@ -234,3 +234,23 @@ class ErroEstoqueSolicitadoNaoEncontrado(HTTPException):
             detail="Essa solicitacao não foi encontrado."
         )
 #endregion
+
+#region email
+class AutStmpServer(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=501,
+            detail="Erro de autenticação no serviço de email."
+            )
+
+class StmpIndisponivel(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=503,
+            detail="Serviço de email indisponível."
+        )
+#endregion

@@ -29,10 +29,6 @@ if DB_USER == None:
 if DB_NAME == None: 
     raise EnvVaulesErros("O campo \"DB_NAME\" não pode ser null(None) ou ser apenas espaços.")
 
-try:
-    DB_PORT = int(getenv("DB_PORT", 5432))
-except:
-    raise EnvVaulesErros("O campo \"DB_PORT\" só pode ser int.")
 #endregion
 
 #region Config do JWT
@@ -46,7 +42,6 @@ TIMER_REFRESH = timedelta(days=7)
 TIMER_ACCESS = timedelta(minutes=30)
 
 #endregion 
-
 
 #region Config Email
 EMAIL_EMISOR = getenv("EMAIL_EMISOR", None)

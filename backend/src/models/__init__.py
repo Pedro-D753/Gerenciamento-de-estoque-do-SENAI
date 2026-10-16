@@ -1,5 +1,4 @@
 # Configuração que já garante que as criações de todas tabelas
-
 from ..db.postgresql_conection import Base, engine
 from .user import UserModel
 from .unidade import UnidadeModel

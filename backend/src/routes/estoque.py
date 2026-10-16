@@ -15,28 +15,33 @@ router = APIRouter(
 
 @router.get("/")
 async def pega_estoque(_: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
-    """\n Pegas todas as estoques criadas"""
+    """\n Pegas todas as estoques criadas  \
+    \n Essa rota tem que está logado."""
     return estoque.ler_estoque(session)
 
 
 @router.get("/{id}")
 async def pega_estoque_id(id: int, _: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
-    """\n Pegas a estoque criada com base no id"""
+    """\n Pegas a estoque criada com base no id  \
+    \n Essa rota tem que está logado."""
     return estoque.ler_estoque_id(session, id)
 
 @router.post("/")
 async def criar_estoque(base: BaseEstoque.EstoqueSchema, _: int = Depends(jwt_estoquista), session: Session = Depends(get_sesion)):
-    """\n Criar estoque"""
+    """\n Criar estoque \
+    \n Essa rota pertence somente ao Estoquista."""
     return estoque.criar_estoque(session, base)
 
 @router.delete("/{id}")
 async def delete_estoque(id: int, _: int = Depends(jwt_estoquista), session: Session = Depends(get_sesion)):
-    """\n Deletar o estoque"""
+    """\n Deletar o estoque \
+    \n Essa rota pertence somente ao estoquista."""
     return estoque.excluir_estoque(session, id)
 
 @router.patch("/{id}")
 async def atualizar_estoque(id: int, base: BaseEstoque.EstoqueUpdateSchema, _: int = Depends(jwt_estoquista), session: Session = Depends(get_sesion)):
-    """\n Atualizar estoque"""
+    """\n Atualizar estoque \
+    \n Essa rota pertence somente ao estoquista."""
 
     return estoque.atualizar_estoque(session,id , base)
 
