@@ -6,7 +6,7 @@ class UserModel(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True)
-    nome = Column(String(255), nullable=False)
+    nome = Column(String(100), nullable=False)
     email = Column(String(255), nullable=False)
     senha = Column(String(255), nullable=False)
     matricula = Column(String(255), nullable=True, unique=True)

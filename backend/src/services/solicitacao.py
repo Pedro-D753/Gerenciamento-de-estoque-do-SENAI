@@ -29,6 +29,7 @@ def criar_solicitacao(session, dados):
     existe = session.query(SolicitacaoModel).filter(SolicitacaoModel.is_aceito == dados.is_aceito,
                                                     SolicitacaoModel.obs_solicita == dados.obs_solicita,
                                                     SolicitacaoModel.obs_recusa == dados.obs_recusa,
+                                                    SolicitacaoModel.email_solicitador_hash == dados.email_solicitador_hash,
                                                     SolicitacaoModel.tipo == dados.tipo,
                                                     SolicitacaoModel.estado == dados.estado,
                                                     SolicitacaoModel.qtd_acao == dados.qtd_acao,
@@ -39,7 +40,7 @@ def criar_solicitacao(session, dados):
     # tratamento de erro
     try:
         # cria o objeto solicitacao
-        solicitacao = SolicitacaoModel(dados.is_aceito, dados.obs_solicita, dados.obs_recusa, dados.tipo, dados.estado, dados.qtd_acao, dados.dt_acao)
+        solicitacao = SolicitacaoModel(dados.is_aceito, dados.obs_solicita, dados.obs_recusa, dados.email_solicitador_hash, dados.tipo, dados.estado, dados.qtd_acao, dados.dt_acao)
 
         # adiciona o objeto no banco e salva
         session.add(solicitacao)
@@ -78,6 +79,7 @@ def atualizar_solicitacao(session, id, dados_new):
     existe_new = session.query(SolicitacaoModel).filter(SolicitacaoModel.is_aceito == dados_new.is_aceito,
                                                         SolicitacaoModel.obs_solicita == dados_new.obs_solicita,
                                                         SolicitacaoModel.obs_recusa == dados_new.obs_recusa,
+                                                        SolicitacaoModel.email_solicitador_hash == dados_new.email_solicitador_hash,
                                                         SolicitacaoModel.tipo == dados_new.tipo,
                                                         SolicitacaoModel.estado == dados_new.estado,
                                                         SolicitacaoModel.qtd_acao == dados_new.qtd_acao,
@@ -96,6 +98,7 @@ def atualizar_solicitacao(session, id, dados_new):
         existe_old.is_aceito = dados_new.is_aceito
         existe_old.obs_solicita = dados_new.obs_solicita
         existe_old.obs_recusa = dados_new.obs_recusa
+        existe_old.email_solicitador_hash = dados_new.email_solicitador_hash
         existe_old.tipo = dados_new.tipo
         existe_old.estado = dados_new.estado
         existe_old.qtd_acao = dados_new.qtd_acao

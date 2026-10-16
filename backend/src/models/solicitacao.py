@@ -22,15 +22,17 @@ class SolicitacaoModel(Base):
     is_aceito = Column(Boolean, nullable=False)
     obs_solicita = Column(Text, nullable=True)
     obs_recusa = Column(Text, nullable=True)
+    email_solicitador_hash = Column(Text, nullable=False)
     tipo = Column(Enum(SolicitacaoTipoEnum), nullable=False)
     estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)
     dt_acao = Column(DateTime, nullable=False)
 
-    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
+    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, email_solicitador_hash, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
         self.is_aceito = is_aceito
         self.obs_solicita = obs_solicita
         self.obs_recusa = obs_recusa
+        self.email_solicitador_hash = email_solicitador_hash
         self.tipo = tipo
         self.estado = estado
         self.qtd_acao = qtd_acao

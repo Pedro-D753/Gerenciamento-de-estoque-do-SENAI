@@ -5,7 +5,7 @@ class CategoriaModel(Base):
     __tablename__ = "categoria"
 
     id = Column(Integer, primary_key=True)
-    nome = Column(String(255), nullable=False)
+    nome = Column(String(255), nullable=False, unique=True)
     
 
     def __init__(self, nome: str) -> None:
