@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 //import Home from './pages/Home';
 import Historico from './pages/Historico';
 import Solicitacao from './pages/Solicitacao.jsx';
-import Gerenciar from './pages/Gerenciar';
+import Descricao from './pages/Descricao.jsx';
 // import HistoricoSolicitacao from './pages/HistoricoSolicitacao';
 // import ItemDescricao from './pages/ItemDescricao';
 
@@ -16,8 +16,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Solicitacao/>} />
         <Route path="/solicitacao" element={<Solicitacao/>} />
-        <Route path="/historico" element={<Historico/>} />
-        <Route path="/gerenciar" element={<Gerenciar/>} />
+        <Route path="/solicitacao/historico" element={<Historico/>} />
+        <Route path="/descricao" element={<Descricao/>} />
         {/*<Route path="/" element={<Home />} />
         <Route path="/historico_solicitacao" element={<HistoricoSolicitacao />} />
         <Route path="/item/:id" element={<ItemDescricao />} /> */}

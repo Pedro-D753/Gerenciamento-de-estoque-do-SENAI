@@ -2,6 +2,86 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, FileText, Search, ChevronDown, LayoutDashboard, Menu, Check, X, Trash2 } from 'lucide-react';
 
+// Opções de unidades atualizadas
+const OPCOES_UNIDADE = [
+  'Gama',
+  'Taguatinga',
+  'Sobradinho',
+  'Sig',
+];
+
+// Componente de Autocomplete para a Unidade
+function AutocompleteUnidade({ value, onChange }) {
+  const [searchTerm, setSearchTerm] = useState(value || '');
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setSearchTerm(value || '');
+  }, [value]);
+
+  const opcoesFiltradas = OPCOES_UNIDADE.filter((opcao) =>
+    opcao.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setIsOpen(false);
+      
+      const opcaoEncontrada = OPCOES_UNIDADE.find(
+        (op) => op.toLowerCase() === searchTerm.trim().toLowerCase()
+      );
+
+      if (opcaoEncontrada) {
+        setSearchTerm(opcaoEncontrada);
+        onChange(opcaoEncontrada);
+      } else {
+        // Se o valor digitado for inválido, restaura para o último valor válido
+        setSearchTerm(value || '');
+      }
+    }, 150);
+  };
+
+  const handleSelect = (opcao) => {
+    setSearchTerm(opcao);
+    onChange(opcao);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative flex flex-col gap-1 w-full">
+      <label className="text-xs font-medium text-gray-300">Unidade *</label>
+      
+      <input
+        type="text"
+        value={searchTerm}
+        onFocus={() => setIsOpen(true)}
+        onBlur={handleBlur}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setIsOpen(true);
+        }}
+        placeholder="Selecione a unidade..."
+        className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-slate-500"
+      />
+
+      {isOpen && opcoesFiltradas.length > 0 && (
+        <div className="absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-slate-600 bg-slate-900 shadow-xl">
+          {opcoesFiltradas.map((opcao) => (
+            <button
+              key={opcao}
+              type="button"
+              onMouseDown={() => handleSelect(opcao)}
+              className="w-full px-3 py-2 text-left text-sm text-white hover:bg-slate-800 transition-colors"
+            >
+              {opcao}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Solicitacao() {
   const [activeTab, setActiveTab] = useState('Solicitação');
   const [sandwish, setSandwish] = useState(false);
@@ -108,7 +188,7 @@ export default function Solicitacao() {
           if (!nextState[item.id]) {
             nextState[item.id] = {
               quantidade: 1,
-              unidade: item.location || '',
+              unidade: item.location || 'Gama',
               solicitante: '',
               dataSolicitacao: today,
               dataRetirada: today,
@@ -137,7 +217,7 @@ export default function Solicitacao() {
 
     const quantidadeValida =
       Number(details.quantidade) > 0 &&
-      Number(details.quantidade) <= (item.stock || 1);
+      Number(details.quantidade) <= (item.stock || '-');
     const unidadeValida = Boolean(details.unidade && details.unidade.trim() !== '');
     const solicitanteValido = Boolean(details.solicitante && details.solicitante.trim() !== '');
     const dataSolicitacaoValida = Boolean(details.dataSolicitacao && details.dataSolicitacao.trim().length === 10);
@@ -167,7 +247,7 @@ export default function Solicitacao() {
         selectedItems.map(async (item) => {
           const details = requestDetails[item.id];
           const qtdPedida = Math.min(
-            Math.max(1, Number(details.quantidade) || 1),
+            Math.max(1, Number(details.quantidade) || '-'),
             item.stock || 1
           );
 
@@ -286,8 +366,7 @@ export default function Solicitacao() {
         <main className="flex flex-1 min-w-0 flex-col bg-[#D8DCE3]">
           <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-slate-300 bg-[#D8DCE3] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
             <button onClick={() => navigate('/solicitacao')} className="whitespace-nowrap rounded-t-xl border-t border-x border-slate-300 bg-[#CBD0D8] px-6 py-2.5 font-bold text-slate-900 shadow-xs sm:px-12">Solicitar</button>
-            <button onClick={() => navigate('/gerenciar')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-[#CBD0D8]/60 sm:px-12">Gerenciar</button>
-            <button onClick={() => navigate('/historico')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-[#CBD0D8]/60 sm:px-12">Histórico</button>
+            <button onClick={() => navigate('/solicitacao/historico')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-[#CBD0D8]/60 sm:px-12">Histórico</button>
           </div>
 
           <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 sm:p-6 md:p-8">
@@ -461,15 +540,11 @@ export default function Solicitacao() {
                             />
                           </div>
 
-                          <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-gray-300">Unidade *</label>
-                            <input
-                              type="text"
-                              value={details.unidade ?? ''}
-                              onChange={(e) => handleDetailChange(item.id, 'unidade', e.target.value)}
-                              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-white focus:outline-none"
-                            />
-                          </div>
+                          {/* Autocomplete de Unidade (Gama, Taguatinga, Sobradinho, Sig) */}
+                          <AutocompleteUnidade
+                            value={details.unidade ?? ''}
+                            onChange={(novoValor) => handleDetailChange(item.id, 'unidade', novoValor)}
+                          />
 
                           <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium text-gray-300">Solicitante *</label>

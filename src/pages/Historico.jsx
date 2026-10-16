@@ -141,7 +141,6 @@ export default function Historico() {
         <main className="flex flex-1 min-w-0 flex-col bg-[#D8DCE3]">
           <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-slate-300 bg-[#D8DCE3] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
             <button onClick={() => navigate('/solicitacao')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 hover:bg-[#CBD0D8]/60 sm:px-12">Solicitar</button>
-            <button onClick={() => navigate('/gerenciar')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 hover:bg-[#CBD0D8]/60 sm:px-12">Gerenciar</button>
             <button onClick={() => navigate('/historico')} className="whitespace-nowrap rounded-t-xl border-t border-x border-slate-300 bg-[#CBD0D8] px-6 py-2.5 font-bold text-slate-900 shadow-xs sm:px-12">Histórico</button>
           </div>
 
