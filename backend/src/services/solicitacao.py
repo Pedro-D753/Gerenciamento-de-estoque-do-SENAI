@@ -1,4 +1,5 @@
 from ..models.solicitacao import SolicitacaoModel
+from ..models.estoque_solicitacao import EstoqueSolicitacaoModel
 from .erros import ErroInesperado, ErroSolicitacaoExiste, ErroSolicitacaoNaoEncontrado
 from .estoque_solicitado import criar_estoque_solicitado, ler_estoque_solicitado, ler_estoque_solicitado_id, atualizar_estoque_solicitado, excluir_estoque_solicitado
 
@@ -34,10 +35,10 @@ def criar_solicitacao(session, dados):
 
 #region FUNCAO LER SOLICITACAO
 def ler_solicitacao(session):
-    return session.query(SolicitacaoModel).all()
+    return session.query(SolicitacaoModel).join(EstoqueSolicitacaoModel).all()
 
 def ler_solicitacao_id(session, id):
-    return session.query(SolicitacaoModel).filter(SolicitacaoModel.id == id).first()
+    return session.query(SolicitacaoModel).join(EstoqueSolicitacaoModel, SolicitacaoModel.id == id).first()
 #endregion
 
 #region FUNCAO ATUALIZAR SOLICITACAO

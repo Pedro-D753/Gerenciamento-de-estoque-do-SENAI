@@ -9,12 +9,11 @@ from .produto import ProdutoModel
 from .fornecedor import FornecedorModel
 from .estoque import EstoqueModel
 from .estoque_solicitacao import EstoqueSolicitacaoModel
-from .departamento import DepartamentoModel
 from .contratos import ContratoModel
 from .categoria import CategoriaModel
 
 __all__ = ["UserModel", "UnidadeModel", "SolicitacaoEstadoEnum", "SolicitacaoTipoEnum", "SolicitacaoModel",
            "RegistroModel", "ProdutoModel", "FornecedorModel", "EstoqueModel", "EstoqueSolicitacaoModel",
-           "DepartamentoModel", "ContratoModel", "CategoriaModel"]
+            "ContratoModel", "CategoriaModel"]
 
 Base.metadata.create_all(bind=engine)

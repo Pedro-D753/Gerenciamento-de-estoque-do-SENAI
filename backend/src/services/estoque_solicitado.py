@@ -4,7 +4,7 @@ from .erros import ErroEstoqueSolicitadoExiste, ErroEstoqueSolicitadoNaoEncontra
 #region FUNCAO DE CRIA ESTOQUE SOLICITADO
 def criar_estoque_solicitado(session, dados):
     # verifica se existe
-    existe = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.estoque_id == dados.estoque_id,
+    existe = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.estoque_id == dados.id,
                                                            EstoqueSolicitacaoModel.solicitacao_id == dados.solicitacao_id).first()
     if existe:
         raise ErroEstoqueSolicitadoExiste(session)
@@ -24,19 +24,11 @@ def criar_estoque_solicitado(session, dados):
         raise ErroInesperado(session, e)
 #endregion
 
-#region FUNCAO DE LER ESTOQUE SOLICITADO
-def ler_estoque_solicitado(session):
-    return session.query(EstoqueSolicitacaoModel).all()
-
-def ler_estoque_solicitado_id(session, id):
-    return session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.id == id).first()
-#endregion
-
 #region FUNCAO DE ATUALIZAR ESTOQUE SOLICITADO
 def atualizar_estoque_solicitado(session, id, dados_new):
     # verifica se existe
     existe_old = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.id == id).first()
-    existe_new = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.estoque_id == dados_new.estoque_id,
+    existe_new = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.estoque_id == dados_new.id,
                                                                EstoqueSolicitacaoModel.solicitacao_id == dados_new.solicitacao_id).first()
     if not existe_old:
         raise ErroEstoqueSolicitadoNaoEncontrado(session)
@@ -47,7 +39,7 @@ def atualizar_estoque_solicitado(session, id, dados_new):
     # tratamento de erro
     try:
         # atualiza o objeto
-        existe_old.estoque_id = dados_new.estoque_id
+        existe_old.estoque_id = dados_new.id
         existe_old.solicitacao_id = dados_new.solicitacao_id
 
         # atualiza a alteracao no banco
