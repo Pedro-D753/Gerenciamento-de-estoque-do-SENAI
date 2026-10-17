@@ -145,6 +145,25 @@ class ErroProdutoExiste(HTTPException):
         )
 #endregion
 
+#region imagem
+class ErroImagemInvalida(HTTPException):
+    def __init__(self, detalhe: str, status_code: int = 422):
+        super().__init__(status_code=status_code, detail=detalhe)
+
+
+class ErroImagemNaoEncontrada(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=404, detail="Esse produto não possui imagem.")
+
+
+class ErroStorageIndisponivel(HTTPException):
+    def __init__(self, e=None):
+        super().__init__(
+            status_code=502,
+            detail=f"Serviço de armazenamento de imagens indisponível. Erro -> {e}",
+        )
+#endregion
+
 #region fornecedor
 class ErroFornecedorNaoEncontrado(HTTPException):
     def __init__(self, session: Session):
