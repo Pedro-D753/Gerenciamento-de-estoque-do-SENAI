@@ -57,17 +57,17 @@ def atualizar_registro(session, id, dados_new):
     # tratamento de erro
     try:
         # cria o objeto
-        existe_old.is_saida == dados_new.is_saida
-        existe_old.descricao == dados_new.descricao
-        existe_old.qtd == dados_new.qtd
-        existe_old.dt_registro == dados_new.dt_registro
-        existe_old.estoque_id == dados_new.estoque_id
+        existe_old.is_saida = dados_new.is_saida
+        existe_old.descricao = dados_new.descricao
+        existe_old.qtd = dados_new.qtd
+        existe_old.dt_registro = dados_new.dt_registro
+        existe_old.estoque_id = dados_new.estoque_id
 
         # adiciona o objeto no banco e salva
         session.commit()
         session.refresh(existe_old)
 
-        return {"mensagem":"Categoria atualizada com sucesso!"}
+        return {"mensagem":"Registro atualizada com sucesso!"}
 
     except Exception as e:
         raise ErroInesperado(e, session)

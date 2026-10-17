@@ -19,7 +19,7 @@ def criar_contrato(session, dados):
         session.add(contrato)
         session.commit()
 
-        return {"mensagem":"O contrato foi criado com sucesso!"}
+        return {"mensagem":"Contrato foi criado com sucesso!"}
     
     except Exception as e:
         raise ErroInesperado(e, session)
@@ -60,7 +60,7 @@ def atualizar_contrato(session, id, dados_new):
         session.commit()
         session.refresh(existe_old)
 
-        return {"mensagem":"O contrato foi atualizado!"}
+        return {"mensagem":"Contrato foi atualizado!"}
 
     except Exception as e:
         raise ErroInesperado(e, session)

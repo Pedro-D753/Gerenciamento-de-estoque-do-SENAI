@@ -11,6 +11,7 @@ class SolicitacaoSchema(BaseModel):
     estado: EstadoEnum
     qtd_acao: int
     dt_acao: datetime
+    estoque_id: int
 
 class SolicitacaoReadSchema(BaseModel):
     id: int
@@ -21,6 +22,7 @@ class SolicitacaoReadSchema(BaseModel):
     estado: EstadoEnum
     qtd_acao: int
     dt_acao: datetime
+    estoque_id: int
 
 class SolicitacaoUpdateSchema(BaseModel):
     is_aceito: Optional[bool]
@@ -30,6 +32,7 @@ class SolicitacaoUpdateSchema(BaseModel):
     estado: Optional[EstadoEnum]
     qtd_acao: Optional[int]
     dt_acao: Optional[datetime]
+    estoque_id: Optional[int]
 
 # enum class
 class TipoEnum(str, Enum):

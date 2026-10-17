@@ -1,10 +1,19 @@
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 class ErroInesperado(HTTPException):
     def __init__(self, e, session: Session | None = None):
         if session is not None:
             session.rollback()
+
+        original_error = getattr(e, "orig", None)
+        if isinstance(e, IntegrityError) and getattr(original_error, "pgcode", None) == "23503":
+            super().__init__(
+                status_code=409,
+                detail="Não é possível realizar a operação: há registros vinculados ou uma referência inválida."
+            )
+            return
 
         super().__init__(
             status_code=500,
@@ -136,6 +145,25 @@ class ErroProdutoExiste(HTTPException):
         )
 #endregion
 
+#region imagem
+class ErroImagemInvalida(HTTPException):
+    def __init__(self, detalhe: str, status_code: int = 422):
+        super().__init__(status_code=status_code, detail=detalhe)
+
+
+class ErroImagemNaoEncontrada(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=404, detail="Esse produto não possui imagem.")
+
+
+class ErroStorageIndisponivel(HTTPException):
+    def __init__(self, e=None):
+        super().__init__(
+            status_code=502,
+            detail=f"Serviço de armazenamento de imagens indisponível. Erro -> {e}",
+        )
+#endregion
+
 #region fornecedor
 class ErroFornecedorNaoEncontrado(HTTPException):
     def __init__(self, session: Session):
@@ -205,5 +233,43 @@ class ErroRegistroExiste(HTTPException):
         super().__init__(
             status_code=409,
             detail="Essa registro já existe."
+        )
+#endregion
+
+#region estoque solicitado
+class ErroEstoqueSolicitadoExiste(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=409,
+            detail="Essa solicitacao de estoque já existe."
+        )
+
+class ErroEstoqueSolicitadoNaoEncontrado(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+        super().__init__(
+            status_code=404,
+            detail="Essa solicitacao não foi encontrado."
+        )
+#endregion
+
+#region email
+class AutStmpServer(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=501,
+            detail="Erro de autenticação no serviço de email."
+            )
+
+class StmpIndisponivel(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=503,
+            detail="Serviço de email indisponível."
         )
 #endregion

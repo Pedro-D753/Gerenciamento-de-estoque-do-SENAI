@@ -31,6 +31,8 @@ markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
 passlib==1.7.4
+pandas==2.3.3
+openpyxl==3.1.5
 psycopg2-binary==2.9.13
 pyasn1==0.6.4
 pycparser==3.0
@@ -45,6 +47,7 @@ python-dotenv==1.2.3
 python-jose==3.5.0
 python-multipart==0.0.32
 PyYAML==6.0.3
+redis==8.1.0
 rich==15.0.0
 rich-toolkit==0.20.5
 rignore==0.8.1
@@ -63,5 +66,3 @@ urllib3==2.7.0
 uvicorn==0.53.0
 watchfiles==1.2.0
 websockets==17.1
-
-

@@ -1,5 +1,4 @@
 from .produto import router as produto_router 
-from .derpartamento import router as departamento_router
 from .categoria import router as categoria_router 
 from .contrato import router as contrato_router 
 from .fornecedor import router as fornecedor_router 
@@ -33,7 +32,6 @@ async def home_to_doc():
 route_manager.include_router(auth_router) 
 route_manager.include_router(categoria_router) 
 route_manager.include_router(contrato_router) 
-route_manager.include_router(departamento_router) 
 route_manager.include_router(estoque_router) 
 route_manager.include_router(fornecedor_router) 
 route_manager.include_router(produto_router) 

@@ -3,11 +3,13 @@ from email.message import EmailMessage
 from sqlalchemy.orm import Session
 from ..models.user import UserModel
 from .user import criar_token
-from .erros import ErroUserNaoEncontrado, ErroJwtInvalido, ErroJwtInvalidoEmail, ErroInesperado
+from .erros import ErroUserNaoEncontrado, ErroJwtInvalido, ErroJwtInvalidoEmail, ErroInesperado, AutStmpServer, StmpIndisponivel
 from ..config import EMAIL_EMISOR, EMAIL_SENHA, DNS_RETORNO
 from ..dependencies import verificar_jwt
 from ..db.conection_redis import redis_conection 
+from pathlib import Path
 
+PATH_HTML = Path(__file__).resolve().parents[1] / "template" / "email_send.html"
 
 async def enviar_email(email: str, session : Session)-> dict :
     try:
@@ -16,6 +18,8 @@ async def enviar_email(email: str, session : Session)-> dict :
         if query is None : raise ErroUserNaoEncontrado(session)
 
         jwt = criar_token(id_user=int(query.id), is_reste_senha=True)
+
+        URL = f"DNS_RETORNO/{jwt}"
 
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
@@ -29,26 +33,11 @@ async def enviar_email(email: str, session : Session)-> dict :
         #Para quem
         msg['To'] = query.email
 
-        #html
-        html =  f"""<!DOCTYPE html>  \n
-        <head> \n
-            <meta charset="UTF-8">\n
-        </head>\n
-        <body style="font-family: Arial, sans-serif; padding: 20px; \n
-            background: #ffffff,\n
-            ; color: #3b82f6; width: 100%; height: 300px;">\n
-            <h1>Olá, {query.nome} !</h1>\n
-            <p>Aqui está o linck para Redefinir a senha: </p>\n
-            <div style="background-color: #ffffffa2; text-align: center; padding:1px ;border-radius: 5px;">\n
-                <h3 style="color: #3b82f6; font-size: 24px;">\n
-                    <a href="{DNS_RETORNO+"\\"+jwt}">click-me</a></h3>\n
-            </div>\n
-            <p>Esse email foi gerado altomaticamente. Não o responda.\n
-                Atenciosamente,\n
-            <br>Equipe do Suporte Senai Taguatinga.</p>\n
-        </body>\n
-        </html>
-        """
+        with open(PATH_HTML, 'r', encoding='utf-8') as arquivo:
+            html = arquivo.read()
+
+            html = html.format(user=str(query.nome), codigo=URL)
+
         
         #email mesagem, necesse caso um arquivo html
         msg.set_content(html, subtype='html')
@@ -65,11 +54,11 @@ async def enviar_email(email: str, session : Session)-> dict :
     
     except(ErroUserNaoEncontrado): raise
 
-    #except smtplib.SMTPAuthenticationError:
-    #    raise AutStmpServer(session)
+    except smtplib.SMTPAuthenticationError:
+        raise AutStmpServer(session)
 
-    #except (smtplib.SMTPServerDisconnected,smtplib.SMTPConnectError):
-    #    raise StmpIndisponivel(session)
+    except (smtplib.SMTPServerDisconnected,smtplib.SMTPConnectError):
+        raise StmpIndisponivel(session)
     
     except Exception as e:
         raise ErroInesperado(EMAIL_EMISOR, session) # type: ignore

@@ -29,10 +29,6 @@ if DB_USER == None:
 if DB_NAME == None: 
     raise EnvVaulesErros("O campo \"DB_NAME\" não pode ser null(None) ou ser apenas espaços.")
 
-try:
-    DB_PORT = int(getenv("DB_PORT", 5432))
-except:
-    raise EnvVaulesErros("O campo \"DB_PORT\" só pode ser int.")
 #endregion
 
 #region Config do JWT
@@ -47,7 +43,6 @@ TIMER_ACCESS = timedelta(minutes=30)
 
 #endregion 
 
-
 #region Config Email
 EMAIL_EMISOR = getenv("EMAIL_EMISOR", None)
 if EMAIL_EMISOR == None:
@@ -61,8 +56,15 @@ DNS_RETORNO = getenv("DNS_RETORNO", None)
 if DNS_RETORNO == None:
     raise EnvVaulesErros("O campo \"DNS_RETORNO\" não pode ser null(None) ou ser apenas espaços.")
 
+#endregion
 
-
+#region Minio
+# Configuração opcional do armazenamento de imagens. A conexão só é usada
+# quando uma rota de imagem for chamada.
+MINIO_ENDPOINT = getenv("MINIO_ENDPOINT", "http://minio:9000")
+MINIO_BUCKET = getenv("MINIO_BUCKET", "estoque")
+MINIO_ACCESS_KEY = getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = getenv("MINIO_SECRET_KEY", "minioadmin")
 #endregion
 
 oauth2_schemas= OAuth2PasswordBearer(tokenUrl="/auth/login")

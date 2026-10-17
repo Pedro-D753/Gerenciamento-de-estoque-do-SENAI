@@ -5,7 +5,7 @@ class UnidadeModel(Base):
     __tablename__ = "unidade"
 
     id = Column(Integer, primary_key=True)
-    nome = Column(String(50), nullable=False)
+    nome = Column(String(50), nullable=False, unique=True)
     
 
     def __init__(self, nome: str) -> None:

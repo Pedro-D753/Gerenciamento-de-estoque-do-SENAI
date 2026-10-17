@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperação de Senha - SENAI</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
+  
+  <!-- Wrapper centralizado com 100% de largura -->
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f8; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        
+        <!-- Container Principal - Largura Padrão 600px -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          
+          <!-- Cabeçalho (Topo) com Cor Institucional Azul SENAI -->
+          <tr>
+            <td align="center" style="background-color: #0055A5; padding: 30px 20px;">
+              <!-- Logo SENAI em versão positiva sobre fundo claro / branco -->
+              <table border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 4px; padding: 8px 16px;">
+                <tr>
+                  <td align="center" style="font-size: 24px; font-weight: bold; color: #0055A5; letter-spacing: 2px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/SENAI_logo_2024.png?utm_source=pt.wikipedia.org&utm_campaign=index&utm_content=thumbnail_unscaled" alt="SENAI" width="230" style="display: block; border: 0;">
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Conteúdo Principal -->
+          <tr>
+            <td style="padding: 40px 30px; color: #333333; font-size: 16px; line-height: 1.6;">
+              <h1 style="font-size: 20px; font-weight: bold; color: #0055A5; margin-top: 0; margin-bottom: 20px; text-align: center;">
+                Recuperação de Senha
+              </h1>
+              
+              <p style="margin-bottom: 15px;">Olá, {user}</p>
+              
+              <p style="margin-bottom: 25px;">
+                Recebemos uma solicitação para redefinir a sua senha de acesso ao sistema do SENAI. Clique no botão abaixo para prosseguir:
+              </p>
+
+              <!-- Botão de Ação (CTA) -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="{codigo}" target="_blank" style="background-color: #0055A5; color: #ffffff; text-decoration: none; padding: 14px 30px; font-weight: bold; font-size: 16px; border-radius: 4px; display: inline-block;">
+                      Redefinir Minha Senha
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 14px; color: #666666; margin-bottom: 10px;">
+                Se você não solicitou a alteração de senha, ignore este e-mail. Seu acesso continuará seguro.
+              </p>
+              
+              <p style="font-size: 12px; color: #999999; margin-bottom: 0; word-break: break-all;">
+                Se o botão acima não funcionar, copie e cole o link a seguir no seu navegador:<br>
+                <a href="{codigo}" style="color: #0055A5;">{codigo}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divisória Interna -->
+          <tr>
+            <td style="padding: 0 30px;">
+              <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+            </td>
+          </tr>
+
+          <!-- Rodapé -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #ffffff; color: #777777; font-size: 12px; line-height: 1.5;">
+              <p style="margin: 0 0 5px 0; font-weight: bold;">
+                Serviço Nacional de Aprendizagem Industrial - SENAI
+              </p>
+              <p style="margin: 0;">
+                Este é um e-mail automático. Por favor, não responda a esta mensagem.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
