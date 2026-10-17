@@ -10,9 +10,10 @@ from .estoque import EstoqueModel
 from .estoque_solicitacao import EstoqueSolicitacaoModel
 from .contratos import ContratoModel
 from .categoria import CategoriaModel
+from .log import LogModel
 
 __all__ = ["UserModel", "UnidadeModel", "SolicitacaoEstadoEnum", "SolicitacaoTipoEnum", "SolicitacaoModel",
            "RegistroModel", "ProdutoModel", "FornecedorModel", "EstoqueModel", "EstoqueSolicitacaoModel",
-            "ContratoModel", "CategoriaModel"]
+            "ContratoModel", "CategoriaModel", "LogModel"]
 
 Base.metadata.create_all(bind=engine)
