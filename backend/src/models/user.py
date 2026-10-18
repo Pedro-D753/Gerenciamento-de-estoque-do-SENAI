@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
 from passlib.hash import sha256_crypt as sha256
+from hmac import compare_digest
 from ..db.postgresql_conection import Base
 
 class UserModel(Base):
@@ -27,8 +28,16 @@ class UserModel(Base):
         self.unidade_id = unidade
 
 
-    def verificarSenha(self, senha) -> bool:
-        return sha256.verify(senha, self.senha)
+    def verificarSenha(self, senha: str) -> bool:
+        if sha256.identify(self.senha):
+            return sha256.verify(senha, self.senha)
+
+        # Upgrade users created by older versions that stored the password directly.
+        if compare_digest(senha, self.senha):
+            self.senha = sha256.encrypt(senha)
+            return True
+
+        return False
 
     def novaSenha(self, nova_senha) -> None:
         self.senha = sha256.encrypt(nova_senha)

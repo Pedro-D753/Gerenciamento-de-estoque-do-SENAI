@@ -206,3 +206,6 @@ INSERT INTO unidade(nome) VALUES
 ('TAGUATINGA'),
 ('SOBRADINHO'),
 ('GAMA');
+
+INSERT INTO "user" (nome, email, senha, matricula, is_admin, is_ativo, unidade_id)
+VALUES ('lucas', 'lucas', '$5$rounds=535000$Zccr/Dd6xfPxn08L$52EqCkheuNKPQ2knIX/rE3UAW0C0KCFWVuBdpJ.vVpD', '1234', true, true, 1);

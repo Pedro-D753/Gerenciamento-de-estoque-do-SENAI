@@ -1,5 +1,4 @@
 from ..models.user import UserModel
-from passlib.hash import sha256_crypt as sha256
 from .erros import ErroInesperado, ErroUserExiste, ErroUserNaoEncontrado
 from ..config import SECRET_KEY, ALG, TIMER_ACCESS, TIMER_REFRESH
 from jose import jwt
@@ -78,7 +77,7 @@ def autenticar(session, dados):
     if not existe.verificarSenha(dados.senha):
         raise ErroUserNaoEncontrado(session)
 
-    print(existe.verificarSenha(dados.senha))
+    session.commit()
 
     
     access_token = criar_token(existe.id, existe.is_admin)
@@ -110,7 +109,8 @@ def atualizar_usuario(session, id, dados_new):
         # atualiza o objeto
         existe_old.nome = dados_new.nome
         existe_old.email = dados_new.email
-        existe_old.senha = dados_new.senha
+        if dados_new.senha is not None:
+            existe_old.novaSenha(dados_new.senha)
         existe_old.matricula = dados_new.matricula
         existe_old.is_admin = dados_new.is_admin
         existe_old.is_ativo = dados_new.is_ativo
