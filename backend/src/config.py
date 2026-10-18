@@ -18,10 +18,12 @@ if path_env.exists() == True:
 """Garante que a senha com caracteres especiais seja lida como senha,
     não como parte do endereço. Sem o quote_plus, o SQLAlchemy pode interpretar
     os carecteres como: '@' como parte do endereço, e não da senha."""
-DB_PASSWORD = quote_plus(str(getenv("DB_PASSWORD")))
+DB_PASSWORD_REDIS = getenv("DB_PASSWORD")
+DB_PASSWORD = quote_plus(str(DB_PASSWORD_REDIS))
 DB_USER = getenv("DB_USER", None)
 DB_NAME = getenv("DB_NAME", None)
 DB_HOST = getenv("DB_HOST", "db")
+REDIS_HOST = getenv("DB_HOST", DB_HOST)
 
 if DB_USER == None: 
     raise EnvVaulesErros("O campo \"DB_USER\" não pode ser null(None) ou ser apenas espaços.")

@@ -21,7 +21,7 @@ async def login_user(base: OAuth2PasswordRequestForm = Depends(), session: Sessi
     O password = senha \n \n \
     '''
 
-    _base = BaseUser.UserLoginSchema(matricula = int(base.username), senha = base.password)
+    _base = BaseUser.UserLoginSchema(matricula = base.username, senha = base.password)
     
     return user.autenticar(session, _base)
 
@@ -34,4 +34,4 @@ async def enviar_email_reste_senha(Email: str, session: Session = Depends(get_se
 @router.post("/confirme_email_reste_senha/{jwt}")
 async def confirme_email_reste_senha(jwt: str, Base: BaseUser.UserResteSenhaSchema ,session: Session = Depends(get_sesion)):
 
-    return await email.verificar_email_senha(jwt, Base.senha, session)
+    return email.verificar_email_senha(jwt, Base.senha, session)

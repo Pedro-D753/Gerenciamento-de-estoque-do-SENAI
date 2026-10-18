@@ -10,7 +10,7 @@ def verificar_jwt(token: str):
         id = int(dict_info['sub'])
         is_admin = bool(dict_info["is_admin"])
         is_reste_senha = bool(dict_info["is_reste_senha"])
-        jit = bool(dict_info["jit"])
+        jit = str(dict_info["jit"])
 
         return id, is_admin, is_reste_senha, jit
         
@@ -20,9 +20,9 @@ def verificar_jwt(token: str):
     except Exception as e:
         raise ErroInesperado(e)
 
-def jwt_admin(self, token: str = Depends(oauth2_schemas)):
+def jwt_admin( token: str = Depends(oauth2_schemas)):
     try:
-        id, is_admin, is_reste_senha, _  = self.__verificar_jwt__(token)
+        id, is_admin, is_reste_senha, _  = verificar_jwt(token)
 
         if is_reste_senha == True or is_admin == False:
             raise ErroJwtInvalido()
@@ -34,9 +34,9 @@ def jwt_admin(self, token: str = Depends(oauth2_schemas)):
     except Exception as e:
         raise ErroInesperado(e)
     
-def jwt_estoquista(self, token: str = Depends(oauth2_schemas)):
+def jwt_estoquista(token: str = Depends(oauth2_schemas)):
     try:
-        id, is_admin, is_reste_senha, _  = self.__verificar_jwt__(token)
+        id, is_admin, is_reste_senha, _  = verificar_jwt(token)
         if is_reste_senha == True or is_admin == True:
             raise ErroJwtInvalido()
 

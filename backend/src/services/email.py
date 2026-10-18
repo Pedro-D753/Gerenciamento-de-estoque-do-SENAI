@@ -19,7 +19,7 @@ async def enviar_email(email: str, session : Session)-> dict :
 
         jwt = criar_token(id_user=int(query.id), is_reste_senha=True)
 
-        URL = f"DNS_RETORNO/{jwt}"
+        URL = f"{DNS_RETORNO}/{jwt}"
 
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
@@ -66,7 +66,7 @@ async def enviar_email(email: str, session : Session)-> dict :
 def verificar_email_senha(token: str, senha: str ,session: Session)-> dict:
     try:
         id, _ , is_rest_senha, jit = verificar_jwt(token)
-
+        
         if is_rest_senha == False: 
             raise ErroJwtInvalidoEmail(session)
         

@@ -1,4 +1,5 @@
 from ..models.user import UserModel
+from passlib.hash import sha256_crypt as sha256
 from .erros import ErroInesperado, ErroUserExiste, ErroUserNaoEncontrado
 from ..config import SECRET_KEY, ALG, TIMER_ACCESS, TIMER_REFRESH
 from jose import jwt
@@ -78,7 +79,9 @@ def autenticar(session, dados):
     if not existe.verificarSenha(dados.senha):
         raise ErroUserNaoEncontrado(session)
 
+    print(existe.verificarSenha(dados.senha))
 
+    
     access_token = criar_token(existe.id, existe.is_admin)
     refresh_token = criar_token(existe.id, existe.is_admin, True)
 

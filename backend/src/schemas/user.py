@@ -12,7 +12,7 @@ class UserSchema(BaseModel):
     unidade_id: int
 
 class UserLoginSchema(BaseModel):
-    matricula: int
+    matricula: str
     senha: str
 
 class UserResteSenhaSchema(BaseModel):

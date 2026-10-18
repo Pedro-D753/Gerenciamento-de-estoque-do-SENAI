@@ -1,5 +1,5 @@
 -- Não há como fazer verificação se o banco existe no postgres
-CREATE DATABASE gerenciamento_estoque;
+-- CREATE DATABASE gerenciamento_estoque;
 
 -- -----------------------------------------------------
 -- Table unidade
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS produto (
  
   CONSTRAINT fk_produto_categoria
     FOREIGN KEY (categoria_id)
-    REFERENCES categoria (id),
+    REFERENCES categoria (id)
  
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS fornecedor (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY NOT NULL ,
-  matricula INT NOT NULL,
+  matricula VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   is_admin BOOLEAN NOT NULL DEFAULT FALSE,
   is_ativo BOOLEAN NOT NULL DEFAULT TRUE,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS solicitacao (
   is_aceito BOOLEAN NOT NULL DEFAULT TRUE,
   obs_solicita TEXT NULL,
   obs_recusa TEXT NULL,
-  email_solicitador_hash TEXT NOT NULL
+  email_solicitador_hash TEXT NOT null,
   tipo solicitacao_tipo NOT NULL DEFAULT 'SA',
   qtd_acao INT NOT NULL,
   dt_acao TIMESTAMP NOT NULL DEFAULT now(),
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS contrato (
 -- -----------------------------------------------------
 -- Table log
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS log (
+CREATE TABLE IF NOT EXISTS "log" (
   id SERIAL PRIMARY KEY NOT NULL,
   matricula_quem_fez INT NOT NULL,
   acao TEXT NOT NULL,
@@ -174,35 +174,32 @@ CREATE TABLE IF NOT EXISTS log (
 -- Insert Dados - categoria
 -- -----------------------------------------------------
 INSERT INTO categoria(nome) VALUES
-("PRODUÇÃO ALIMENTAR"),
-("ELETRÔNICA E AUTOMAÇÃO"),
-("MANUNTENÇÃO E OPERAÇÃO"),
-("CONSTRUÇÃO DE OBRAS"),
-("SISTEMA DE ENERGIA"),
-("ELETRÔNICA E AUTOMAÇÃO"),
-("ENERGIA GTD"),
-("ENERGI RENOVÁVEIS"),
-("COMERCIAL"),
-("GERENCIAL"),
-("OPERAÇÃO FINANCEIRAS"),
-("DESIGN"),
-("MANUFATURA"),
-("METALMECÂNICA"),
-("ELETRÔNICA E AUTOMAÇÃO"),
-("MENUTENÇÃO E OPERAÇÃO"),
-("SISTEMAS DE ENERGIA"),
-("SEGURANÇA"),
-("INFRAESTRUTURA DE INFORMAÇÃO E COMUNICAÇÃO"),
-("GESTÃO E SEGURANÇA"),
-("DESENVOLVIMENTOS DE SITEMAS"),
-("TÊXTIL E VESTUÁRIO");
+('PRODUÇÃO ALIMENTAR'),
+('ELETRÔNICA E AUTOMAÇÃO'),
+('MANUNTENÇÃO E OPERAÇÃO'),
+('CONSTRUÇÃO DE OBRAS'),
+('SISTEMA DE ENERGIA'),
+('ENERGIA GTD'),
+('ENERGI RENOVÁVEIS'),
+('COMERCIAL'),
+('GERENCIAL'),
+('OPERAÇÃO FINANCEIRAS'),
+('DESIGN'),
+('MANUFATURA'),
+('METALMECÂNICA'),
+('MENUTENÇÃO E OPERAÇÃO'),
+('SISTEMAS DE ENERGIA'),
+('SEGURANÇA'),
+('INFRAESTRUTURA DE INFORMAÇÃO E COMUNICAÇÃO'),
+('GESTÃO E SEGURANÇA'),
+('DESENVOLVIMENTOS DE SITEMAS'),
+('TÊXTIL E VESTUÁRIO');
 
 -- -----------------------------------------------------
 -- Insert Dados - unidade
 -- -----------------------------------------------------
 INSERT INTO unidade(nome) VALUES
-("SIG"),
-("TAGUATINGA"),
-("SOBRADINHO"),
-("GAMA");
-
+('SIG'),
+('TAGUATINGA'),
+('SOBRADINHO'),
+('GAMA');

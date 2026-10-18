@@ -12,6 +12,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    ports:
+      - "5432:5432"
     volumes:
       - db_postgres:/var/lib/postgresql/data
 
@@ -29,12 +31,25 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
 
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${DB_PASSWORD}
+    volumes:
+      - redis_data:/data/redis
+
   backend:
     build:
       dockerfile: ./backend/dockerfile
     restart: always
     env_file:
       - path: .env
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+      MINIO_ENDPOINT: http://minio:9000
     ports:
       - "8000:8000"
     depends_on:
@@ -42,8 +57,10 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
-
+      redis:
+        condition: service_started
 
 volumes:
   db_postgres:
   minio_data:
+  redis_data:
