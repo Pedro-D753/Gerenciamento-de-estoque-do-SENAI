@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from ..dependencies import get_sesion, jwt_estoquista, jwt_geral
 from ..services import estoque, log
 from ..schemas import estoque as BaseEstoque
+from ..models.estoque import EstoqueModel
+from ..models.user import UserModel
+from ..models.unidade import UnidadeModel
 
 router = APIRouter(
     prefix='/estoques',
@@ -20,6 +23,37 @@ async def pega_estoque(_id_user_acao: int = Depends(jwt_geral), session: Session
     log.criar_log(session=session, acao="ler estoque", id=_id_user_acao, tb_acao="Estoque")
 
     return estoque.ler_estoque(session)
+
+
+@router.get("/minha-unidade")
+async def pega_estoque_minha_unidade(
+    id_usuario: int = Depends(jwt_geral),
+    session: Session = Depends(get_sesion),
+):
+    usuario = session.query(UserModel).filter(UserModel.id == id_usuario).first()
+    if usuario is None:
+        return []
+    registros = (
+        session.query(EstoqueModel, UnidadeModel)
+        .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
+        .filter(EstoqueModel.unidade_id == usuario.unidade_id)
+        .all()
+    )
+    return [
+        {
+            "id": item.id,
+            "qtd": item.qtd,
+            "qtd_minima": item.qtd_minima,
+            "preco_unitario": item.preco_unitario,
+            "is_ativo": item.is_ativo,
+            "localidade": item.localidade,
+            "dt_validade": item.dt_validade,
+            "produto_id": item.produto_id,
+            "unidade_id": unidade.id,
+            "unidade": {"id": unidade.id, "nome": unidade.nome},
+        }
+        for item, unidade in registros
+    ]
 
 
 @router.get("/{id}")

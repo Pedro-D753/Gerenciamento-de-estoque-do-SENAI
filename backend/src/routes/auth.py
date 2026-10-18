@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from ..dependencies import get_sesion
+from ..dependencies import get_sesion, jwt_geral
+from ..models.user import UserModel
+from ..models.unidade import UnidadeModel
 from ..services import user, email
 from ..schemas import user as BaseUser
 
@@ -24,6 +26,28 @@ async def login_user(base: OAuth2PasswordRequestForm = Depends(), session: Sessi
     _base = BaseUser.UserLoginSchema(matricula = base.username, senha = base.password)
     
     return user.autenticar(session, _base)
+
+
+@router.get("/me")
+async def usuario_autenticado(
+    id_usuario: int = Depends(jwt_geral),
+    session: Session = Depends(get_sesion),
+):
+    registro = (
+        session.query(UserModel, UnidadeModel)
+        .join(UnidadeModel, UserModel.unidade_id == UnidadeModel.id)
+        .filter(UserModel.id == id_usuario)
+        .first()
+    )
+    if registro is None:
+        return {"id": id_usuario, "unidade": None}
+
+    usuario, unidade = registro
+    return {
+        "id": usuario.id,
+        "nome": usuario.nome,
+        "unidade": {"id": unidade.id, "nome": unidade.nome},
+    }
 
 @router.get("/enviar_email_reste_senha/{Email}")
 async def enviar_email_reste_senha(Email: str, session: Session = Depends(get_sesion)):

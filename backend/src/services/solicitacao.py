@@ -1,10 +1,13 @@
 from ..models.solicitacao import SolicitacaoModel
 from ..models.estoque_solicitacao import EstoqueSolicitacaoModel
+from ..models.estoque import EstoqueModel
+from ..models.produto import ProdutoModel
+from ..models.unidade import UnidadeModel
 from .erros import ErroInesperado, ErroSolicitacaoExiste, ErroSolicitacaoNaoEncontrado
 from .estoque_solicitado import criar_estoque_solicitado, atualizar_estoque_solicitado, excluir_estoque_solicitado
 
 
-def _serializar_solicitacao(solicitacao, estoque_solicitado):
+def _serializar_solicitacao(solicitacao, estoque_solicitado, estoque=None, produto=None, unidade=None):
     return {
         "solicitacao": {
             "id": solicitacao.id,
@@ -15,11 +18,18 @@ def _serializar_solicitacao(solicitacao, estoque_solicitado):
             "estado": solicitacao.estado,
             "qtd_acao": solicitacao.qtd_acao,
             "dt_acao": solicitacao.dt_acao,
+            "solicitante": solicitacao.solicitante,
+            "dt_solicitacao": solicitacao.dt_solicitacao,
+            "dt_retirada": solicitacao.dt_retirada,
         },
         "estoque_solicitado": {
             "id": estoque_solicitado.id,
             "estoque_id": estoque_solicitado.estoque_id,
             "solicitacao_id": estoque_solicitado.solicitacao_id,
+            "produto_id": estoque.produto_id if estoque else None,
+            "produto_nome": produto.nome if produto else None,
+            "produto_codigo": produto.codigo_barra if produto else None,
+            "unidade_nome": unidade.nome if unidade else None,
         },
     }
 
@@ -39,12 +49,17 @@ def criar_solicitacao(session, dados):
     # tratamento de erro
     try:
         # cria o objeto solicitacao
-        solicitacao = SolicitacaoModel(dados.is_aceito, dados.obs_solicita, dados.obs_recusa, dados.tipo, dados.estado, dados.qtd_acao, dados.dt_acao)
+        solicitacao = SolicitacaoModel(
+            dados.is_aceito, dados.obs_solicita, dados.obs_recusa, dados.tipo,
+            dados.estado, dados.qtd_acao, dados.dt_acao, dados.solicitante,
+            dados.dt_solicitacao, dados.dt_retirada
+        )
 
         # adiciona o objeto no banco e salva
         session.add(solicitacao)
+        session.flush()
 
-        criar_estoque_solicitado(session, dados)
+        criar_estoque_solicitado(session, dados, solicitacao)
         
         session.commit()
 
@@ -52,22 +67,39 @@ def criar_solicitacao(session, dados):
         return {"mensagem":"Solicitacao criada com sucesso!"}
     
     except Exception as e:
+        session.rollback()
         raise ErroInesperado(e, session)
 #endregion
 
 #region FUNCAO LER SOLICITACAO
 def ler_solicitacao(session):
-    resultados = session.query(SolicitacaoModel, EstoqueSolicitacaoModel).join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id).all()
-    return [_serializar_solicitacao(solicitacao, estoque_solicitado) for solicitacao, estoque_solicitado in resultados]
+    resultados = (
+        session.query(SolicitacaoModel, EstoqueSolicitacaoModel, EstoqueModel, ProdutoModel, UnidadeModel)
+        .join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id)
+        .join(EstoqueModel, EstoqueModel.id == EstoqueSolicitacaoModel.estoque_id)
+        .join(ProdutoModel, ProdutoModel.id == EstoqueModel.produto_id)
+        .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
+        .all()
+    )
+    return [_serializar_solicitacao(solicitacao, estoque_solicitado, estoque, produto, unidade)
+            for solicitacao, estoque_solicitado, estoque, produto, unidade in resultados]
 
 def ler_solicitacao_id(session, id):
-    resultado = session.query(SolicitacaoModel, EstoqueSolicitacaoModel).join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id).filter(SolicitacaoModel.id == id).first()
+    resultado = (
+        session.query(SolicitacaoModel, EstoqueSolicitacaoModel, EstoqueModel, ProdutoModel, UnidadeModel)
+        .join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id)
+        .join(EstoqueModel, EstoqueModel.id == EstoqueSolicitacaoModel.estoque_id)
+        .join(ProdutoModel, ProdutoModel.id == EstoqueModel.produto_id)
+        .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
+        .filter(SolicitacaoModel.id == id)
+        .first()
+    )
 
     if not resultado:
         return None
 
-    solicitacao, estoque_solicitado = resultado
-    return _serializar_solicitacao(solicitacao, estoque_solicitado)
+    solicitacao, estoque_solicitado, estoque, produto, unidade = resultado
+    return _serializar_solicitacao(solicitacao, estoque_solicitado, estoque, produto, unidade)
 #endregion
 
 #region FUNCAO ATUALIZAR SOLICITACAO
@@ -93,19 +125,17 @@ def atualizar_solicitacao(session, id, dados_new):
     # tratamento de erro
     try:
         # atualiza o objeto Solicitacao
-        existe_old.is_aceito = dados_new.is_aceito
-        existe_old.obs_solicita = dados_new.obs_solicita
-        existe_old.obs_recusa = dados_new.obs_recusa
-        existe_old.tipo = dados_new.tipo
-        existe_old.estado = dados_new.estado
-        existe_old.qtd_acao = dados_new.qtd_acao
-        existe_old.dt_acao = dados_new.dt_acao
+        for field in ("is_aceito", "obs_solicita", "obs_recusa", "tipo", "estado", "qtd_acao", "dt_acao", "solicitante", "dt_solicitacao", "dt_retirada"):
+            value = getattr(dados_new, field)
+            if value is not None:
+                setattr(existe_old, field, value)
 
         # adiciona o objeto no banco e salva
         session.commit()
         session.refresh(existe_old)
 
-        atualizar_estoque_solicitado(session, id, dados_new)
+        if dados_new.estoque_id is not None:
+            atualizar_estoque_solicitado(session, id, dados_new)
 
         return {"mensagem":"Solicitacao atualizada com sucesso!"}
 

@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
 
 class ProdutoSchema(BaseModel):
     nome: str
     descricao: Optional[str]
     unidade_medida: str
     codigo_barra: int
-    img_hash: str
     categoria_id: int
 
 class ProdutoReadSchema(BaseModel):
@@ -15,7 +15,7 @@ class ProdutoReadSchema(BaseModel):
     descricao: Optional[str]
     unidade_medida: str
     codigo_barra: int
-    img_hash: str
+    img_hash: Optional[str] = None
     categoria_id: int
 
 class ProdutoUpdateSchema(BaseModel):
@@ -25,3 +25,12 @@ class ProdutoUpdateSchema(BaseModel):
     codigo_barra: Optional[int]
     img_hash: Optional[str]
     categoria_id: Optional[int]  
+
+
+class ProdutoComEstoqueSchema(ProdutoSchema):
+    qtd: int = 0
+    qtd_minima: int = 0
+    preco_unitario: float = 0
+    is_ativo: bool = True
+    localidade: Optional[str] = None
+    dt_validade: date = date(2099, 12, 31)

@@ -3,12 +3,15 @@ from .erros import ErroProdutoExiste, ErroProdutoNaoEncontrado, ErroInesperado
 
 #region FUNCAO CRIAR PRODUTO
 def criar_produto(session, dados):
+    codigo_barra = str(dados.codigo_barra)
+    img_hash = None
+
     # verifica se existe
     existe = session.query(ProdutoModel).filter(ProdutoModel.nome == dados.nome,
                                                 ProdutoModel.descricao == dados.descricao,
-                                                ProdutoModel.img_hash == dados.img_hash,
+                                                ProdutoModel.img_hash == img_hash,
                                                 ProdutoModel.unidade_medida == dados.unidade_medida,
-                                                ProdutoModel.codigo_barra == dados.codigo_barra,
+                                                ProdutoModel.codigo_barra == codigo_barra,
                                                 ProdutoModel.categoria_id == dados.categoria_id).first()
 
     if existe:
@@ -17,13 +20,16 @@ def criar_produto(session, dados):
     # tratamento de erros
     try:
         # cria o objeto
-        produto = ProdutoModel(dados.nome, dados.descricao, dados.img_hash , dados.unidade_medida, dados.codigo_barra, dados.categoria_id)
+        produto = ProdutoModel(dados.nome, dados.descricao, img_hash, dados.unidade_medida, codigo_barra, dados.categoria_id)
 
         # adiciona no banco e salva
         session.add(produto)
         session.commit()
 
-        return {"mensagem":"Produto criado com sucesso!!"}
+        return {
+            "mensagem": "Produto criado com sucesso!!",
+            "id": produto.id,
+        }
     
     except Exception as e:
         raise ErroInesperado(e, session)
@@ -39,13 +45,19 @@ def ler_produto_id(session, id):
 
 #region FUNCAO ATUALIZAR PRODUTO
 def atualizar_produto(session, id, dados_new):
+    codigo_barra = (
+        str(dados_new.codigo_barra)
+        if dados_new.codigo_barra is not None
+        else None
+    )
+
     # verifica se existe
     existe_old = session.query(ProdutoModel).filter(ProdutoModel.id == id).first()
     existe_new = session.query(ProdutoModel).filter(ProdutoModel.nome == dados_new.nome,
                                                     ProdutoModel.descricao == dados_new.descricao,
                                                     ProdutoModel.img_hash == dados_new.img_hash,
                                                     ProdutoModel.unidade_medida == dados_new.unidade_medida,
-                                                    ProdutoModel.codigo_barra == dados_new.codigo_barra,
+                                                    ProdutoModel.codigo_barra == codigo_barra,
                                                     ProdutoModel.categoria_id == dados_new.categoria_id).first()
 
     if not existe_old:
@@ -61,7 +73,8 @@ def atualizar_produto(session, id, dados_new):
         existe_old.descricao = dados_new.descricao
         existe_old.img_hash = dados_new.img_hash
         existe_old.unidade_medida = dados_new.unidade_medida
-        existe_old.codigo_barra = dados_new.codigo_barra
+        if codigo_barra is not None:
+            existe_old.codigo_barra = codigo_barra
         existe_old.categoria_id = dados_new.categoria_id
 
         # atualiza o banco

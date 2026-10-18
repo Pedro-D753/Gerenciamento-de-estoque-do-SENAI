@@ -15,10 +15,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_postgres:/var/lib/postgresql/data
+      - db_postgres_1:/var/lib/postgresql/data
 
   minio:
-    image: minio/minio:latest
+    image: cgr.dev/chainguard/minio:latest
     container_name: minio
     restart: always
     ports:
@@ -30,7 +30,7 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
-
+  
   redis:
     image: redis:7
     restart: always
@@ -38,29 +38,10 @@ services:
       - "6379:6379"
     command: redis-server --appendonly yes --requirepass ${DB_PASSWORD}
     volumes:
-      - redis_data:/data/redis
-
-  backend:
-    build:
-      dockerfile: ./backend/dockerfile
-    restart: always
-    env_file:
-      - path: .env
-    environment:
-      DB_HOST: db
-      REDIS_HOST: redis
-      MINIO_ENDPOINT: http://minio:9000
-    ports:
-      - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      redis:
-        condition: service_started
-
+      - redis_data:/data_redis
+    
 volumes:
-  db_postgres:
-  minio_data:
   redis_data:
+  minio_data:
+  db_postgres_1:
+  

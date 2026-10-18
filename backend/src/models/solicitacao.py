@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, Text, Enum, DateTime
+from sqlalchemy import Column, Integer, Boolean, Text, Enum, DateTime, String
 from datetime import datetime
 import enum
 
@@ -26,8 +26,11 @@ class SolicitacaoModel(Base):
     estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)
     dt_acao = Column(DateTime, nullable=False)
+    solicitante = Column(String(255), nullable=True)
+    dt_solicitacao = Column(DateTime, nullable=True)
+    dt_retirada = Column(DateTime, nullable=True)
 
-    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum ,qtd_acao: int, dt_acao: datetime = datetime.now()) -> None:
+    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum, qtd_acao: int, dt_acao: datetime = datetime.now(), solicitante: str | None = None, dt_solicitacao: datetime | None = None, dt_retirada: datetime | None = None) -> None:
         self.is_aceito = is_aceito
         self.obs_solicita = obs_solicita
         self.obs_recusa = obs_recusa
@@ -35,5 +38,8 @@ class SolicitacaoModel(Base):
         self.estado = estado
         self.qtd_acao = qtd_acao
         self.dt_acao = dt_acao
+        self.solicitante = solicitante
+        self.dt_solicitacao = dt_solicitacao
+        self.dt_retirada = dt_retirada
     
   

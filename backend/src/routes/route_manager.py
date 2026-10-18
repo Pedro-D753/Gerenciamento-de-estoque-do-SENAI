@@ -9,6 +9,7 @@ from .user import router as user_router
 from .registro import router as registro_router 
 from .auth import router as auth_router
 from .excel import router as excel_router
+from .barcode import router as barcode_router
 
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
@@ -40,3 +41,4 @@ route_manager.include_router(solicitacao_router)
 route_manager.include_router(unidade_router) 
 route_manager.include_router(user_router) 
 route_manager.include_router(excel_router)
+route_manager.include_router(barcode_router)

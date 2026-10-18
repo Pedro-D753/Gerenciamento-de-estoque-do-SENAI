@@ -30,9 +30,9 @@ async def pega_solicitacao_id(id: int, _id_user_acao: int = Depends(jwt_geral), 
     return solicitacao.ler_solicitacao_id(session, id)
 
 @router.post("/")
-async def criar_solicitacao(base: BaseSolicitacao.SolicitacaoSchema, _id_user_acao: int = Depends(jwt_admin), session: Session = Depends(get_sesion)):
+async def criar_solicitacao(base: BaseSolicitacao.SolicitacaoSchema, _id_user_acao: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
     """\n Criar solicitacao \
-    \n Essa rota pertence somente ao admin."""
+    \n Essa rota exige um usuário autenticado."""
     log.criar_log(session=session, acao="Solicitacao criada", id=_id_user_acao, tb_acao="Solicitacao")
 
     return solicitacao.criar_solicitacao(session, base)

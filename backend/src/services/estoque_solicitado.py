@@ -4,14 +4,10 @@ from ..models.solicitacao import SolicitacaoModel
 from .erros import ErroEstoqueNaoEncontrado, ErroEstoqueSolicitadoExiste, ErroEstoqueSolicitadoNaoEncontrado, ErroInesperado
 
 #region FUNCAO DE CRIA ESTOQUE SOLICITADO
-def criar_estoque_solicitado(session, dados):
-    solicitacao = session.query(SolicitacaoModel).filter(SolicitacaoModel.is_aceito == dados.is_aceito,
-                                                    SolicitacaoModel.obs_solicita == dados.obs_solicita,
-                                                    SolicitacaoModel.obs_recusa == dados.obs_recusa,
-                                                    SolicitacaoModel.tipo == dados.tipo,
-                                                    SolicitacaoModel.estado == dados.estado,
-                                                    SolicitacaoModel.qtd_acao == dados.qtd_acao,
-                                                    SolicitacaoModel.dt_acao == dados.dt_acao).first()
+def criar_estoque_solicitado(session, dados, solicitacao):
+    estoque = session.query(EstoqueModel).filter(EstoqueModel.id == dados.estoque_id).first()
+    if not estoque:
+        raise ErroEstoqueNaoEncontrado(session)
     
     # verifica se existe
     existe = session.query(EstoqueSolicitacaoModel).filter(EstoqueSolicitacaoModel.estoque_id == dados.estoque_id,
@@ -30,6 +26,7 @@ def criar_estoque_solicitado(session, dados):
         return {"mensagem":"Essa solicitacao de estoque foi criada com sucesso!!"}
 
     except Exception as e:
+        session.rollback()
         raise ErroInesperado(e, session)
 #endregion
 

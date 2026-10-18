@@ -5,17 +5,14 @@ from ..config import SECRET_KEY, ALG, TIMER_ACCESS, TIMER_REFRESH
 from jose import jwt
 from uuid import uuid4
 from datetime import datetime, timezone, timedelta
+from sqlalchemy.exc import IntegrityError
 
 #region FUNCAO CRIAR USUARIO
 def criar_usuario(session, dados):
     # verifica se existe esse usuario no banco
-    existe = session.query(UserModel).filter(UserModel.nome == dados.nome, 
-                                             UserModel.email == dados.email,
-                                            UserModel.senha == dados.senha, 
-                                            UserModel.matricula == dados.matricula, 
-                                            UserModel.is_admin == dados.is_admin, 
-                                            UserModel.is_ativo == dados.is_ativo, 
-                                            UserModel.unidade_id == dados.unidade_id).first()
+    existe = session.query(UserModel).filter(
+        UserModel.matricula == dados.matricula
+    ).first()
     if existe:
         raise ErroUserExiste(session)
 
@@ -30,6 +27,8 @@ def criar_usuario(session, dados):
 
         return {"mensagem":"Usuario criado com sucesso!"}
 
+    except IntegrityError as e:
+        raise ErroUserExiste(session)
     except Exception as e:
         raise ErroInesperado(e, session)
 #endregion
@@ -96,13 +95,10 @@ def autenticar(session, dados):
 def atualizar_usuario(session, id, dados_new):
     # verifica se existe
     existe_old = session.query(UserModel).filter(UserModel.id == id).first()
-    existe_new = session.query(UserModel).filter(UserModel.nome == dados_new.nome,
-                                                 UserModel.email == dados_new.email,
-                                                 UserModel.senha == dados_new.senha,
-                                                 UserModel.matricula == dados_new.matricula,
-                                                 UserModel.is_admin == dados_new.is_admin,
-                                                 UserModel.is_ativo == dados_new.is_ativo,
-                                                 UserModel.unidade_id == dados_new.unidade_id).first()
+    existe_new = session.query(UserModel).filter(
+        UserModel.matricula == dados_new.matricula,
+        UserModel.id != id,
+    ).first()
     if not existe_old:
         raise ErroUserNaoEncontrado(session)
 
@@ -125,6 +121,8 @@ def atualizar_usuario(session, id, dados_new):
 
         return {"mensagem":"Usuario atualizado com sucesso!!"}
 
+    except IntegrityError as e:
+        raise ErroUserExiste(session)
     except Exception as e:
         raise ErroInesperado(e, session)
 #endregion

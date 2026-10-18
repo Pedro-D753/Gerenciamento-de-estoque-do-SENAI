@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS produto (
   id SERIAL PRIMARY KEY NOT NULL,
   nome VARCHAR(255) NOT NULL,
   descricao TEXT NULL,
-  img_hash TEXT NOT NULL,
+  img_hash TEXT NULL,
   unidade_medida VARCHAR(50) NOT NULL,
   codigo_barra TEXT NOT NULL,
   categoria_id INT NOT NULL,
@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS produto (
     REFERENCES categoria (id)
  
 );
+
+-- Permite cadastrar o produto antes de enviar sua imagem.
+ALTER TABLE IF EXISTS produto ALTER COLUMN img_hash DROP NOT NULL;
 
 -- -----------------------------------------------------
 -- Table fornecedor
