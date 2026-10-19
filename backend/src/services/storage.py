@@ -1,14 +1,17 @@
 import hashlib
 import threading
+from io import BytesIO
 
 import boto3
 from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
+from PIL import Image, UnidentifiedImageError
 
 from ..config import MINIO_ACCESS_KEY, MINIO_BUCKET, MINIO_ENDPOINT, MINIO_SECRET_KEY
 from .erros import ErroImagemInvalida, ErroImagemNaoEncontrada, ErroStorageIndisponivel
 
 TAMANHO_MAX = 5 * 1024 * 1024
+FORMATOS_IMAGEM = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
 _NAO_ENCONTRADO = ("404", "NoSuchKey", "NoSuchBucket", "NotFound")
 
 _client = boto3.client(
@@ -39,13 +42,20 @@ def _codigo(e: ClientError) -> str:
 
 
 def _detectar_tipo(dados: bytes) -> str | None:
-    if dados.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if dados.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    if dados[:4] == b"RIFF" and dados[8:12] == b"WEBP":
-        return "image/webp"
-    return None
+    try:
+        with Image.open(BytesIO(dados)) as imagem:
+            tipo = FORMATOS_IMAGEM.get(imagem.format)
+            if tipo is None:
+                return None
+            largura, altura = imagem.size
+            if not largura or not altura or abs((largura / altura) - 1) > 0.01:
+                raise ErroImagemInvalida("A imagem deve ser quadrada, na proporção 1:1.")
+            imagem.verify()
+            return tipo
+    except ErroImagemInvalida:
+        raise
+    except (UnidentifiedImageError, OSError):
+        return None
 
 
 def garantir_bucket() -> None:

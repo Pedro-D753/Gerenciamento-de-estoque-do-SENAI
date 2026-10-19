@@ -4,6 +4,37 @@ import { Copy, FileText, History, LayoutDashboard, Menu, Package, ScanLine } fro
 import { QRCodeSVG } from 'qrcode.react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function validateImageFile(file) {
+  if (!file) return Promise.resolve('');
+  if (!IMAGE_TYPES.includes(file.type)) {
+    return Promise.resolve('Selecione uma foto JPG, PNG ou WEBP.');
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return Promise.resolve('A foto deve ter no máximo 5 MB.');
+  }
+  return new Promise((resolve) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      if (!image.naturalWidth || !image.naturalHeight) {
+        resolve('Não foi possível ler as dimensões da foto.');
+        return;
+      }
+      const ratio = image.naturalWidth / image.naturalHeight;
+      resolve(Math.abs(ratio - 1) <= 0.01 ? '' : 'A foto deve ser quadrada, na proporção 1:1.');
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve('O arquivo selecionado não é uma foto válida.');
+    };
+    image.src = objectUrl;
+  });
+}
+
 function Login({ onLogin }) {
   const [matricula, setMatricula] = useState('');
   const [senha, setSenha] = useState('');
@@ -199,6 +230,18 @@ function EditProduct({ item, onCancel, onSaved }) {
     const { name, value, type, checked } = event.target;
     setForm(current => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
   }
+  async function selectImage(event) {
+    const file = event.target.files?.[0] || null;
+    const validationError = await validateImageFile(file);
+    if (validationError) {
+      setImageFile(null);
+      event.target.value = '';
+      setError(validationError);
+      return;
+    }
+    setError('');
+    setImageFile(file);
+  }
   async function submit(event) {
     event.preventDefault();
     setError('');
@@ -236,7 +279,7 @@ function EditProduct({ item, onCancel, onSaved }) {
       <label>Código de barras<input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /></label>
       <label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
       <label>Data de validade<input name="dt_validade" type="date" value={form.dt_validade} onChange={change} /></label>
-      <label className="image-upload-field">Imagem do produto<input className="image-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImageFile(event.target.files?.[0] || null)} /><span className="image-upload-button">Escolher arquivo</span><span className="image-file-name">{imageFile ? imageFile.name : 'Manter imagem atual'}</span>{imageFile && <UploadPreview file={imageFile} />}</label>
+      <label className="image-upload-field">Imagem do produto<input className="image-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Manter imagem atual'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB · proporção 1:1</small>{imageFile && <UploadPreview file={imageFile} />}</label>
       <label className="flex-row-label"><input name="is_ativo" type="checkbox" checked={form.is_ativo} onChange={change} /> Item ativo</label>
       {error && <div role="alert" className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
@@ -403,6 +446,18 @@ function NewProduct({ setPage }) {
     return () => { active = false; };
   }, [scannerSession]);
   function change(event) { setForm({ ...form, [event.target.name]: event.target.value }); }
+  async function selectImage(event) {
+    const file = event.target.files?.[0] || null;
+    const validationError = await validateImageFile(file);
+    if (validationError) {
+      setImageFile(null);
+      event.target.value = '';
+      setError(validationError);
+      return;
+    }
+    setError('');
+    setImageFile(file);
+  }
   async function openScanner() {
     try {
       const session = await api.createBarcodeSession();
@@ -439,7 +494,7 @@ function NewProduct({ setPage }) {
       event.target.reset();
     } catch (e) { setError(e.message); } finally { setSaving(false); }
   }
-  return <section><span className="eyebrow">Estoquista</span><h1>Novo item</h1><form className="panel form-grid" onSubmit={submit}>{[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}<label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label><label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label><label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label><label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>A sessão expira automaticamente após 5 minutos.</small></div>}</label><label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImageFile(event.target.files?.[0] || null)} /><span className="image-upload-button">Escolher arquivo</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhum arquivo selecionado'}</span>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label><label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label><div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>{error && <div className="error">{error}</div>}{success && <div className="success">{success}</div>}</form></section>;
+  return <section><span className="eyebrow">Estoquista</span><h1>Novo item</h1><form className="panel form-grid" onSubmit={submit}>{[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}<label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label><label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label><label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label><label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>A sessão expira automaticamente após 5 minutos.</small></div>}</label><label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB · proporção 1:1</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label><label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label><div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>{error && <div className="error">{error}</div>}{success && <div className="success">{success}</div>}</form></section>;
 }
 
 function BarcodeScanner() {

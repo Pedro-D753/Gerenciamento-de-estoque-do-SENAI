@@ -10,6 +10,7 @@ html,body,#root{min-height:100%;overflow-x:hidden}.body{height:calc(100vh - 80px
 .sidebar-link.manual-link,.sidebar-link.manual-link:hover{background:#E84910;color:#fff}.sidebar-link.manual-link:hover{background:#C63D0D}
 :root,body,.app,.content,.scanner-page{font-weight:700}
 .form-grid input,.form-grid select,.image-file-name,.scanner-link-box,.scanner-manual-input,.request-modal textarea{font-weight:700}
+.image-upload-help{display:block;margin-top:6px;color:#58575A;font-size:12px}
 .forgot-button{display:block;width:auto!important;margin:12px 0 0 auto!important;background:transparent;color:#164194;text-decoration:underline;padding:0}
 .forgot-backdrop{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:20px;background:#17203380}
 .forgot-card{width:min(100%,420px);padding:28px}.forgot-card h2{margin:0;color:#0c3b7c}.forgot-card p{color:#617087}.forgot-card label{display:flex;flex-direction:column;gap:7px;margin-top:15px}.forgot-card input{padding:12px;border:1px solid #ccd4df;border-radius:7px}.forgot-card .actions{justify-content:flex-end;margin-top:18px}
