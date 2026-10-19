@@ -26,3 +26,6 @@ with engine.begin() as connection:
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS solicitante VARCHAR(255)"))
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_solicitacao TIMESTAMP"))
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_retirada TIMESTAMP"))
+    connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS obs_pad TEXT"))
+    connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Separada'"))
+    connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Retirada'"))

@@ -40,12 +40,13 @@ async def usuario_autenticado(
         .first()
     )
     if registro is None:
-        return {"id": id_usuario, "unidade": None}
+        return {"id": id_usuario, "is_admin": False, "unidade": None}
 
     usuario, unidade = registro
     return {
         "id": usuario.id,
         "nome": usuario.nome,
+        "is_admin": usuario.is_admin,
         "unidade": {"id": unidade.id, "nome": unidade.nome},
     }
 

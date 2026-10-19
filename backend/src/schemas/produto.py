@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
@@ -34,3 +34,15 @@ class ProdutoComEstoqueSchema(ProdutoSchema):
     is_ativo: bool = True
     localidade: Optional[str] = None
     dt_validade: date = date(2099, 12, 31)
+
+class ProdutoEstoquistaUpdateSchema(BaseModel):
+    nome: str
+    descricao: Optional[str] = None
+    unidade_medida: str
+    codigo_barra: int
+    categoria_id: int
+    qtd: int = Field(ge=0)
+    qtd_minima: int = Field(ge=0)
+    preco_unitario: float = Field(ge=0)
+    is_ativo: bool
+    dt_validade: Optional[date] = None

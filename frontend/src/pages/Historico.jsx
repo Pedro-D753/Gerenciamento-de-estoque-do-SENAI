@@ -2,7 +2,7 @@ import AppShell from '../components/AppShell.jsx';
 /* eslint-disable react-hooks/immutability */
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, Check } from 'lucide-react';
+import { Search, ChevronDown, Check, X } from 'lucide-react';
 import { api } from '../services/api.js';
 
 export default function Historico() {
@@ -14,6 +14,11 @@ export default function Historico() {
   const [loading, setLoading] = useState(true);
   const [filtro, setfiltro] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState(null);
+  const [rejectingItem, setRejectingItem] = useState(null);
+  const [padNote, setPadNote] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectError, setRejectError] = useState('');
+  const [rejecting, setRejecting] = useState(false);
 
   const scrollRef = useRef(null);
   const filtroRef = useRef(null);
@@ -93,6 +98,9 @@ export default function Historico() {
             ? new Date(solicitation.dt_retirada).toLocaleDateString('pt-BR')
             : '-',
           requestedQty: solicitation.qtd_acao ?? 0,
+          status: solicitation.tipo ?? 'EmAndamento',
+          obsPad: solicitation.obs_pad ?? '',
+          obsRecusa: solicitation.obs_recusa ?? '',
           AreaTecnica: '',
           raw: entry,
         };
@@ -102,6 +110,32 @@ export default function Historico() {
       setItems([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openRejectDialog = (event, item) => {
+    event.stopPropagation();
+    setRejectingItem(item);
+    setPadNote('');
+    setRejectReason('');
+    setRejectError('');
+  };
+
+  const submitRejection = async (event) => {
+    event.preventDefault();
+    setRejectError('');
+    setRejecting(true);
+    try {
+      await api.recusarSolicitacaoMaster(rejectingItem.id, {
+        obs_pad: padNote.trim(),
+        obs_recusa: rejectReason.trim(),
+      });
+      setRejectingItem(null);
+      await fetchHistory();
+    } catch (error) {
+      setRejectError(error.message || 'Não foi possível recusar a solicitação.');
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -161,7 +195,7 @@ export default function Historico() {
                     </button>
 
                     {filtro && (
-                      <div className="absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white/95 p-1.5 shadow-2xl backdrop-blur-md">
+                      <div className="absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden rounded-2xl border border-slate-300 bg-[#D1D5DB]/95 p-1.5 shadow-2xl backdrop-blur-md">
                         <div className="pb-1 mb-1 border-b border-gray-200/80">
                           <button onClick={() => { setQuery(''); setAreaTecnica(''); setfiltro(false); }} className="flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-sm font-semibold text-red-600 hover:bg-[#BFBFBF]">
                             <span>Limpar Filtros</span>
@@ -221,7 +255,7 @@ export default function Historico() {
                           >
                             <div className="col-span-1 font-semibold">{index + 1}</div>
                             <div className="col-span-2 font-mono text-xs sm:text-sm">{item.code}</div>
-                            <div className="col-span-3 flex items-center gap-2 pl-2 text-left font-medium">
+                            <div className="col-span-3 flex items-center justify-center gap-2 text-center font-medium">
                               {item.image && <img src={item.image} alt={item.name} className="h-7 w-7 rounded bg-white p-0.5 object-contain shrink-0" />}
                               <span className="truncate">{item.name}</span>
                             </div>
@@ -236,6 +270,10 @@ export default function Historico() {
                           {isExpanded && (
                             <div className="relative col-span-12 bg-[#D1D5DB] p-4 border-b border-slate-600 transition-all text-left text-gray-900">
                               <div className="flex flex-wrap items-center justify-start gap-3">
+                                <div className="flex flex-col items-center justify-center bg-[#E5E7EB] rounded-xl px-4 py-3 min-w-[140px] min-h-[75px] text-center border border-gray-300">
+                                  <span className="text-xs font-semibold text-gray-700">Status:</span>
+                                  <span className="mt-1 text-xs font-bold text-gray-900">{item.status}</span>
+                                </div>
                                 <div className="flex flex-col items-center justify-center bg-[#E5E7EB] rounded-xl px-4 py-3 min-w-[140px] min-h-[75px] text-center border border-gray-300">
                                   <span className="text-xs font-semibold text-gray-700">Solicitante:</span>
                                   <span className="mt-1 text-xs font-bold text-gray-900">{item.solicitante || '-'}</span>
@@ -264,6 +302,25 @@ export default function Historico() {
                                 <div className="ml-auto flex items-center justify-end px-2 pt-2 text-xs font-bold text-gray-800">
                                   {item.saCode || '-'}
                                 </div>
+                                {item.status === 'Cancelada' && (
+                                  <>
+                                    <div className="w-full rounded-lg bg-[#E5E7EB] p-3 text-sm">
+                                      <strong>Observação (PAD):</strong> {item.obsPad || '-'}
+                                    </div>
+                                    <div className="w-full rounded-lg bg-[#E5E7EB] p-3 text-sm">
+                                      <strong>Motivo da recusa:</strong> {item.obsRecusa || '-'}
+                                    </div>
+                                  </>
+                                )}
+                                {item.status === 'EmAndamento' && (
+                                  <button
+                                    type="button"
+                                    onClick={(event) => openRejectDialog(event, item)}
+                                    className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800"
+                                  >
+                                    Recusar solicitação
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -277,6 +334,31 @@ export default function Historico() {
           </div>
         </main>
       </div>
+      {rejectingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
+          <form onSubmit={submitRejection} className="w-full max-w-lg rounded-2xl bg-[#E0E0E0] p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="master-reject-title">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 id="master-reject-title" className="m-0 text-xl font-bold text-slate-900">Recusar solicitação #{rejectingItem.id}</h2>
+              <button type="button" onClick={() => setRejectingItem(null)} className="rounded-lg p-2 text-slate-700 hover:bg-slate-300" aria-label="Fechar">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <label className="mb-4 block text-sm font-semibold text-slate-800">
+              Observação (PAD)
+              <textarea value={padNote} onChange={(event) => setPadNote(event.target.value)} className="mt-1 min-h-24 w-full rounded-lg border border-slate-400 bg-[#D1D5DB] p-3 font-normal" maxLength={2000} required />
+            </label>
+            <label className="mb-4 block text-sm font-semibold text-slate-800">
+              Motivo da recusa
+              <textarea value={rejectReason} onChange={(event) => setRejectReason(event.target.value)} className="mt-1 min-h-24 w-full rounded-lg border border-slate-400 bg-[#D1D5DB] p-3 font-normal" maxLength={2000} required />
+            </label>
+            {rejectError && <p role="alert" className="rounded-lg bg-red-100 p-3 text-sm text-red-800">{rejectError}</p>}
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setRejectingItem(null)} className="rounded-lg bg-slate-500 px-4 py-2 font-semibold text-white">Cancelar</button>
+              <button type="submit" disabled={rejecting || !padNote.trim() || !rejectReason.trim()} className="rounded-lg bg-red-700 px-4 py-2 font-semibold text-white disabled:opacity-60">{rejecting ? 'Recusando...' : 'Confirmar recusa'}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
     </AppShell>
   );

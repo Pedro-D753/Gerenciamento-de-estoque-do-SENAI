@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..dependencies import get_sesion, jwt_geral, jwt_admin
+from ..dependencies import get_sesion, jwt_geral, jwt_admin, jwt_estoquista
 from ..services import solicitacao, log
 from ..schemas import solicitacao as BaseSolicitacao
 
@@ -37,6 +37,23 @@ async def criar_solicitacao(base: BaseSolicitacao.SolicitacaoSchema, _id_user_ac
 
     return solicitacao.criar_solicitacao(session, base)
 
+@router.post("/lote")
+async def criar_solicitacoes(
+    bases: list[BaseSolicitacao.SolicitacaoSchema],
+    _id_user_acao: int = Depends(jwt_geral),
+    session: Session = Depends(get_sesion),
+):
+    if not bases:
+        raise HTTPException(status_code=422, detail="Informe pelo menos uma solicitação.")
+
+    log.criar_log(
+        session=session,
+        acao=f"Criar lote com {len(bases)} solicitação(ões)",
+        id=_id_user_acao,
+        tb_acao="Solicitacao",
+    )
+    return solicitacao.criar_solicitacoes(session, bases)
+
 @router.delete("/{id}")
 async def delete_solicitacao(id: int, _id_user_acao: int = Depends(jwt_admin), session: Session = Depends(get_sesion)):
     """\n Deletar o solicitacao \
@@ -46,10 +63,57 @@ async def delete_solicitacao(id: int, _id_user_acao: int = Depends(jwt_admin), s
     return solicitacao.excluir_solicitacao(session, id)
 
 @router.patch("/{id}")
-async def atualizar_solicitacao(id: int, base: BaseSolicitacao.SolicitacaoUpdateSchema, _id_user_acao: int = Depends(jwt_admin), session: Session = Depends(get_sesion)):
-    """\n Atualizar solicitacao \
-    \n Essa rota pertence somente ao admin."""
+async def atualizar_solicitacao(id: int, base: BaseSolicitacao.SolicitacaoUpdateSchema, _id_user_acao: int = Depends(jwt_estoquista), session: Session = Depends(get_sesion)):
+    """Atualiza somente campos sem alteração do fluxo de atendimento."""
+    campos_permitidos = {"obs_solicita", "solicitante", "dt_solicitacao"}
+    if base.model_fields_set - campos_permitidos:
+        raise HTTPException(
+            status_code=422,
+            detail="Use as rotas específicas para recusar, separar ou registrar a retirada da solicitação.",
+        )
 
     log.criar_log(session=session, acao=f"Solicitacao alterada: {id}", id=_id_user_acao, tb_acao="Solicitacao")
 
     return solicitacao.atualizar_solicitacao(session,id , base)
+
+
+@router.patch("/master/{id}/recusar")
+async def recusar_solicitacao_master(
+    id: int,
+    base: BaseSolicitacao.SolicitacaoRecusaSchema,
+    _id_user_acao: int = Depends(jwt_admin),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(session=session, acao=f"Solicitação recusada pelo Master: {id}", id=_id_user_acao, tb_acao="Solicitacao")
+    return solicitacao.recusar_solicitacao(session, id, base)
+
+
+@router.patch("/estoquista/{id}/recusar")
+async def recusar_solicitacao_estoquista(
+    id: int,
+    base: BaseSolicitacao.SolicitacaoRecusaSchema,
+    _id_user_acao: int = Depends(jwt_estoquista),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(session=session, acao=f"Solicitação recusada pelo Estoquista: {id}", id=_id_user_acao, tb_acao="Solicitacao")
+    return solicitacao.recusar_solicitacao(session, id, base, _id_user_acao)
+
+
+@router.patch("/estoquista/{id}/separar")
+async def separar_solicitacao_estoquista(
+    id: int,
+    _id_user_acao: int = Depends(jwt_estoquista),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(session=session, acao=f"Solicitação separada no estoque: {id}", id=_id_user_acao, tb_acao="Solicitacao")
+    return solicitacao.separar_solicitacao(session, id, _id_user_acao)
+
+
+@router.patch("/estoquista/{id}/retirar")
+async def retirar_solicitacao_estoquista(
+    id: int,
+    _id_user_acao: int = Depends(jwt_estoquista),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(session=session, acao=f"Retirada de solicitação registrada: {id}", id=_id_user_acao, tb_acao="Solicitacao")
+    return solicitacao.retirar_solicitacao(session, id, _id_user_acao)

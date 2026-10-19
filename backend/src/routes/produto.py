@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from ..dependencies import get_sesion, jwt_admin, jwt_geral
+from ..dependencies import get_sesion, jwt_admin, jwt_geral, jwt_estoquista
 from ..services import produto, estoque, log, produto_imagem, storage
 from ..services.erros import ErroImagemInvalida
 from ..schemas import produto as BaseProduto
@@ -93,6 +93,22 @@ async def atualizar_produto(id: int, base: BaseProduto.ProdutoUpdateSchema, _id_
     log.criar_log(session=session, acao=f"Produto alterado: {id}", id=_id_user_acao, tb_acao="Produto")
 
     return produto.atualizar_produto(session, id, base)
+
+
+@router.patch("/{id}/estoquista")
+async def atualizar_produto_estoquista(
+    id: int,
+    base: BaseProduto.ProdutoEstoquistaUpdateSchema,
+    id_usuario: int = Depends(jwt_estoquista),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(
+        session=session,
+        acao=f"Item e estoque alterados: {id}",
+        id=id_usuario,
+        tb_acao="Estoque",
+    )
+    return produto.atualizar_produto_estoquista(session, id, id_usuario, base)
 
 
 @router.put("/{id}/imagem")

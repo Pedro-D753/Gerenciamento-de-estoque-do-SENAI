@@ -1,5 +1,8 @@
 from ..models.produto import ProdutoModel
+from ..models.estoque import EstoqueModel
+from ..models.user import UserModel
 from .erros import ErroProdutoExiste, ErroProdutoNaoEncontrado, ErroInesperado
+from fastapi import HTTPException
 
 #region FUNCAO CRIAR PRODUTO
 def criar_produto(session, dados):
@@ -42,6 +45,47 @@ def ler_produto(session):
 def ler_produto_id(session, id):
     return session.query(ProdutoModel).filter(ProdutoModel.id == id).first()
 #endregion
+
+def atualizar_produto_estoquista(session, id, id_usuario, dados):
+    produto = session.query(ProdutoModel).filter(ProdutoModel.id == id).first()
+    estoque = (
+        session.query(EstoqueModel)
+        .join(UserModel, UserModel.unidade_id == EstoqueModel.unidade_id)
+        .filter(
+            EstoqueModel.produto_id == id,
+            UserModel.id == id_usuario,
+        )
+        .with_for_update()
+        .first()
+    )
+    if produto is None or estoque is None:
+        raise HTTPException(status_code=404, detail="Item não encontrado nesta unidade.")
+
+    codigo_barra = str(dados.codigo_barra)
+    codigo_existente = (
+        session.query(ProdutoModel)
+        .filter(ProdutoModel.codigo_barra == codigo_barra, ProdutoModel.id != id)
+        .first()
+    )
+    if codigo_existente:
+        raise HTTPException(status_code=409, detail="Já existe um item com este código de barras.")
+
+    try:
+        produto.nome = dados.nome
+        produto.descricao = dados.descricao
+        produto.unidade_medida = dados.unidade_medida
+        produto.codigo_barra = codigo_barra
+        produto.categoria_id = dados.categoria_id
+        estoque.qtd = dados.qtd
+        estoque.qtd_minima = dados.qtd_minima
+        estoque.preco_unitario = dados.preco_unitario
+        estoque.is_ativo = dados.is_ativo
+        estoque.dt_validade = dados.dt_validade
+        session.commit()
+        return {"mensagem": "Item e estoque atualizados com sucesso."}
+    except Exception as e:
+        session.rollback()
+        raise ErroInesperado(e, session)
 
 #region FUNCAO ATUALIZAR PRODUTO
 def atualizar_produto(session, id, dados_new):

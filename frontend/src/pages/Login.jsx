@@ -21,6 +21,11 @@ export default function Login() {
     setLoading(true);
     try {
       await api.login(matricula.trim(), senha);
+      const user = await api.currentUser();
+      if (!user.is_admin) {
+        api.logout();
+        throw new Error('Acesso ao Master permitido somente para administradores.');
+      }
       navigate('/', { replace: true });
     } catch (requestError) {
       setError(requestError.message || 'Não foi possível realizar o login.');
@@ -49,7 +54,7 @@ export default function Login() {
   return (
     <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <form onSubmit={handleSubmit} className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <img src="/Senai.png" alt="SENAI" className="h-14 w-auto mx-auto mb-6" />
+        <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" className="h-14 w-auto mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-center text-[#0C3B7C]">Acesso do usuário</h1>
         <p className="text-center text-slate-500 mt-2 mb-6">Sistema de Controle e Estoque</p>
         {sessionExpired && (

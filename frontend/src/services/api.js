@@ -1,5 +1,23 @@
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const TOKEN_KEY = 'sce_access_token';
+const MASTER_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ITEMS_CACHE_TTL = 60_000;
+let itemsCache = null;
+let itemsRequest = null;
+let itemsCacheVersion = 0;
+const productImagesCache = new Map();
+
+function invalidateItemsCache() {
+  itemsCacheVersion += 1;
+  itemsCache = null;
+  itemsRequest = null;
+  productImagesCache.forEach((imageRequest) => {
+    imageRequest.then((url) => {
+      if (url) URL.revokeObjectURL(url);
+    }).catch(() => {});
+  });
+  productImagesCache.clear();
+}
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -33,8 +51,8 @@ async function request(path, options = {}) {
   if (!response.ok) {
     if (token && (response.status === 401 || response.status === 403)) {
       localStorage.removeItem(TOKEN_KEY);
-      if (window.location.pathname !== '/login') {
-        window.location.assign('/login?expired=1');
+      if (window.location.pathname !== `${MASTER_BASE_PATH}/login`) {
+        window.location.assign(`${MASTER_BASE_PATH}/login?expired=1`);
       }
     }
     const detail = typeof responseBody === 'object' && responseBody?.detail
@@ -46,12 +64,14 @@ async function request(path, options = {}) {
   return responseBody;
 }
 
-function normalizeProduct(product, stockOverride, unitName) {
+function normalizeProduct(product, stockOverride, unitName, categoryName) {
   const stock = stockOverride || product.estoque || product.estoques?.[0] || {};
   const unit = stock.unidade || product.unidade || {};
   return {
     ...product,
     id: product.id,
+    categoria_id: product.categoria_id,
+    categoria_nome: categoryName || '',
     item: product.nome,
     name: product.nome,
     codigo: String(product.codigo_barra ?? ''),
@@ -68,6 +88,16 @@ function normalizeProduct(product, stockOverride, unitName) {
 }
 
 async function getProductImageUrl(id) {
+  if (productImagesCache.has(id)) return productImagesCache.get(id);
+  const imageRequest = fetchProductImageUrl(id).catch((error) => {
+    if (productImagesCache.get(id) === imageRequest) productImagesCache.delete(id);
+    throw error;
+  });
+  productImagesCache.set(id, imageRequest);
+  return imageRequest;
+}
+
+async function fetchProductImageUrl(id) {
   const token = getToken();
   const response = await fetch(`${API_BASE_URL}/produtos/${id}/imagem`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -79,8 +109,8 @@ async function getProductImageUrl(id) {
   return URL.createObjectURL(await response.blob());
 }
 
-async function normalizeProductWithImage(product, stock, unitName) {
-  const normalized = normalizeProduct(product, stock, unitName);
+async function normalizeProductWithImage(product, stock, unitName, categoryName) {
+  const normalized = normalizeProduct(product, stock, unitName, categoryName);
   try {
     normalized.image = await getProductImageUrl(product.id);
   } catch {
@@ -95,6 +125,88 @@ async function getById(resource, id) {
 
 async function list(resource) {
   return request(`/${resource}/`);
+}
+
+async function loadItems(refresh = false) {
+  if (!refresh && itemsCache && itemsCache.expiresAt > Date.now()) {
+    return itemsCache.value;
+  }
+  if (itemsRequest) {
+    if (!refresh) return itemsRequest;
+    await itemsRequest.catch(() => {});
+  }
+
+  const cacheVersion = itemsCacheVersion;
+  const requestPromise = (async () => {
+    const [products, stocks, units, categories] = await Promise.all([
+      list('produtos'),
+      list('estoques'),
+      list('unidades'),
+      list('categoria'),
+    ]);
+    const unitNames = new Map(units.map((unit) => [Number(unit.id), unit.nome]));
+    const categoryNames = new Map(categories.map((category) => [Number(category.id), category.nome]));
+    const stocksByProduct = new Map();
+    stocks.forEach((stock) => {
+      const current = stocksByProduct.get(stock.produto_id) || {
+        ...stock,
+        qtd: 0,
+        qtd_minima: 0,
+        localidade: null,
+      };
+      current.qtd += Number(stock.qtd || 0);
+      current.qtd_minima += Number(stock.qtd_minima || 0);
+      if (!current.localidade) current.localidade = stock.localidade;
+      stocksByProduct.set(stock.produto_id, current);
+    });
+    const items = await Promise.all(products.map((product) => {
+      const stock = stocksByProduct.get(product.id);
+      const unitName = stock ? unitNames.get(Number(stock.unidade_id)) : undefined;
+      return normalizeProductWithImage(product, stock, unitName, categoryNames.get(Number(product.categoria_id)));
+    }));
+    if (cacheVersion === itemsCacheVersion) {
+      itemsCache = { value: items, expiresAt: Date.now() + ITEMS_CACHE_TTL };
+    }
+    return items;
+  })();
+  itemsRequest = requestPromise;
+  try {
+    return await requestPromise;
+  } finally {
+    if (itemsRequest === requestPromise) itemsRequest = null;
+  }
+}
+
+async function download(path) {
+  const token = getToken();
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    if (token && (response.status === 401 || response.status === 403)) {
+      localStorage.removeItem(TOKEN_KEY);
+      if (window.location.pathname !== `${MASTER_BASE_PATH}/login`) {
+        window.location.assign(`${MASTER_BASE_PATH}/login?expired=1`);
+      }
+    }
+    const contentType = response.headers.get('content-type') || '';
+    const responseBody = contentType.includes('application/json')
+      ? await response.json()
+      : await response.text();
+    const detail = responseBody?.detail || responseBody || `HTTP ${response.status}`;
+    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+  }
+
+  const disposition = response.headers.get('content-disposition') || '';
+  const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'relatorio_estoque.xlsx';
+  const objectUrl = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
 async function create(resource, data) {
@@ -121,17 +233,22 @@ export const api = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: form.toString(),
     });
+    invalidateItemsCache();
     if (data?.access_token) localStorage.setItem(TOKEN_KEY, data.access_token);
     return data;
   },
 
   logout() {
     localStorage.removeItem(TOKEN_KEY);
+    invalidateItemsCache();
   },
 
   isAuthenticated() {
     return Boolean(getToken());
   },
+
+  currentUser: () => request('/auth/me'),
+  exportarRelatorioExcel: () => download('/exportacoes/todas'),
 
   solicitarRedefinicaoSenha(email) {
     return request(`/auth/enviar_email_reste_senha/${encodeURIComponent(email)}`);
@@ -144,47 +261,30 @@ export const api = {
     });
   },
 
-  getItems: async () => {
-    const [products, stocks, units] = await Promise.all([list('produtos'), list('estoques'), list('unidades')]);
-    const unitNames = new Map(units.map((unit) => [Number(unit.id), unit.nome]));
-    const stocksByProduct = new Map();
-    stocks.forEach((stock) => {
-      const current = stocksByProduct.get(stock.produto_id) || {
-        ...stock,
-        qtd: 0,
-        qtd_minima: 0,
-        localidade: null,
-      };
-      current.qtd += Number(stock.qtd || 0);
-      current.qtd_minima += Number(stock.qtd_minima || 0);
-      if (!current.localidade) current.localidade = stock.localidade;
-      stocksByProduct.set(stock.produto_id, current);
-    });
-    return Promise.all(products.map((product) => {
-      const stock = stocksByProduct.get(product.id);
-      const unitName = stock ? unitNames.get(Number(stock.unidade_id)) : undefined;
-      return normalizeProductWithImage(product, stock, unitName);
-    }));
-  },
+  getItems: () => loadItems(),
+  refreshItems: () => loadItems(true),
   getItemById: async (id) => normalizeProductWithImage(await getById('produtos', id)),
   getProdutos: () => list('produtos'),
   getProduto: (id) => getById('produtos', id),
-  criarProduto: (data) => create('produtos', data),
-  atualizarProduto: (id, data) => update('produtos', id, data),
-  removerProduto: (id) => remove('produtos', id),
+  criarProduto: async (data) => { const result = await create('produtos', data); invalidateItemsCache(); return result; },
+  atualizarProduto: async (id, data) => { const result = await update('produtos', id, data); invalidateItemsCache(); return result; },
+  removerProduto: async (id) => { const result = await remove('produtos', id); invalidateItemsCache(); return result; },
   enviarImagemProduto: (id, arquivo) => {
     const form = new FormData();
     form.append('arquivo', arquivo);
-    return request(`/produtos/${id}/imagem`, { method: 'PUT', body: form });
+    return request(`/produtos/${id}/imagem`, { method: 'PUT', body: form }).then((result) => {
+      invalidateItemsCache();
+      return result;
+    });
   },
   verImagemProduto: (id) => request(`/produtos/${id}/imagem`),
-  removerImagemProduto: (id) => request(`/produtos/${id}/imagem`, { method: 'DELETE' }),
+  removerImagemProduto: async (id) => { const result = await request(`/produtos/${id}/imagem`, { method: 'DELETE' }); invalidateItemsCache(); return result; },
 
   getCategorias: () => list('categoria'),
-  criarCategoria: (data) => create('categoria', data),
+  criarCategoria: async (data) => { const result = await create('categoria', data); invalidateItemsCache(); return result; },
   getCategoria: (id) => getById('categoria', id),
-  atualizarCategoria: (id, data) => update('categoria', id, data),
-  removerCategoria: (id) => remove('categoria', id),
+  atualizarCategoria: async (id, data) => { const result = await update('categoria', id, data); invalidateItemsCache(); return result; },
+  removerCategoria: async (id) => { const result = await remove('categoria', id); invalidateItemsCache(); return result; },
 
   getContratos: () => list('contratos'),
   criarContrato: (data) => create('contratos', data),
@@ -193,10 +293,10 @@ export const api = {
   removerContrato: (id) => remove('contratos', id),
 
   getEstoques: () => list('estoques'),
-  criarEstoque: (data) => create('estoques', data),
+  criarEstoque: async (data) => { const result = await create('estoques', data); invalidateItemsCache(); return result; },
   getEstoque: (id) => getById('estoques', id),
-  atualizarEstoque: (id, data) => update('estoques', id, data),
-  removerEstoque: (id) => remove('estoques', id),
+  atualizarEstoque: async (id, data) => { const result = await update('estoques', id, data); invalidateItemsCache(); return result; },
+  removerEstoque: async (id) => { const result = await remove('estoques', id); invalidateItemsCache(); return result; },
 
   getFornecedores: () => list('fornecedors'),
   criarFornecedor: (data) => create('fornecedors', data),
@@ -213,49 +313,31 @@ export const api = {
   getSolicitacoes: () => list('solicitacaos'),
   getSolicitacao: (id) => getById('solicitacaos', id),
   createSolicitacao: (data) => create('solicitacaos', data),
+  createSolicitacoes: (data) => request('/solicitacaos/lote', { method: 'POST', body: data }),
+  recusarSolicitacaoMaster: (id, data) => request(`/solicitacaos/master/${id}/recusar`, { method: 'PATCH', body: data }),
   atualizarSolicitacao: (id, data) => update('solicitacaos', id, data),
   removerSolicitacao: (id) => remove('solicitacaos', id),
 
   async getGerenciarSolicitacoes() {
     const solicitacoes = await list('solicitacaos');
-    return solicitacoes.filter(({ estado }) => estado === 'EmAndamento');
+    return solicitacoes.filter(({ solicitacao }) => ['EmAndamento', 'Separada'].includes(solicitacao?.tipo));
   },
 
   async getHistoricoSolicitacoes() {
     const solicitacoes = await list('solicitacaos');
-    return solicitacoes.filter(({ estado }) => estado === 'Concluida' || estado === 'Cancelada');
+    return solicitacoes.filter(({ solicitacao }) => ['Concluida', 'Retirada', 'Cancelada'].includes(solicitacao?.tipo));
   },
 
-  async aprovarSolicitacao(id) {
-    const resposta = await getById('solicitacaos', id);
-    const solicitacao = resposta.solicitacao || resposta;
-    const estoqueSolicitado = resposta.estoque_solicitado || {};
-    return update('solicitacaos', id, {
-      is_aceito: true,
-      obs_solicita: solicitacao.obs_solicita,
-      obs_recusa: null,
-      tipo: 'Concluida',
-      estado: 'Concluida',
-      dt_acao: new Date().toISOString(),
-      qtd_acao: solicitacao.qtd_acao,
-      estoque_id: estoqueSolicitado.estoque_id,
-    });
-  },
-
-  recusarSolicitacao(id, observacao = null) {
-    return update('solicitacaos', id, {
-      is_aceito: false,
-      obs_recusa: observacao,
-      estado: 'Cancelada',
-      dt_acao: new Date().toISOString(),
-    });
-  },
+  recusarSolicitacao: (id, obsPad, motivo) => api.recusarSolicitacaoMaster(id, {
+    obs_pad: obsPad,
+    obs_recusa: motivo,
+  }),
 
   getUnidades: () => list('unidades'),
-  criarUnidade: (data) => create('unidades', data),
+  criarUnidade: async (data) => { const result = await create('unidades', data); invalidateItemsCache(); return result; },
   getUnidade: (id) => getById('unidades', id),
-  atualizarUnidade: (id, data) => update('unidades', id, data),
-  removerUnidade: (id) => remove('unidades', id),
+  atualizarUnidade: async (id, data) => { const result = await update('unidades', id, data); invalidateItemsCache(); return result; },
+  removerUnidade: async (id) => { const result = await remove('unidades', id); invalidateItemsCache(); return result; },
 
   getUsers: () => list('users'),
   criarUser: (data) => create('users', data),

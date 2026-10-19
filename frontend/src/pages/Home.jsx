@@ -10,6 +10,9 @@ export default function Solicitacao() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [itemLoadError, setItemLoadError] = useState('');
+  const [requestError, setRequestError] = useState('');
   
   // Estados dos Filtros
   const [filtroArea, setFiltroArea] = useState(false);
@@ -27,26 +30,6 @@ export default function Solicitacao() {
   const backdropMouseDownRef = useRef(false);
 
   
-
-  const opcoesArea = [
-    { id: 0, label: 'Todas as Áreas', action: () => setAreaTecnica('all') },
-    { id: 1, label: 'Produção Alimentícia', action: () => setAreaTecnica('producao_alimenticia') },
-    { id: 2, label: 'Eletrônica e Automação', action: () => setAreaTecnica('eletronica_e_automacao') },
-    { id: 3, label: 'Manutenção e Operação', action: () => setAreaTecnica('manutencao_e_operacao') },
-    { id: 4, label: 'Construção de Obras', action: () => setAreaTecnica('construcao_de_obras') },
-    { id: 6, label: 'Construção de Obras / Sistemas de Energia', action: () => setAreaTecnica('construcao_de_obras/sistemas_de_energia') },
-    { id: 9, label: 'Sistemas de Energia', action: () => setAreaTecnica('sistemas_de_energia') },
-    { id: 11, label: 'Comercial / Gerencial / Operações Financeiras', action: () => setAreaTecnica('comercial/gerencial/operacoes_financeiras') },
-    { id: 12, label: 'Design', action: () => setAreaTecnica('design') },
-    { id: 13, label: 'Gerencial', action: () => setAreaTecnica('gerencial') },
-    { id: 14, label: 'Manufatura', action: () => setAreaTecnica('manufatura') },
-    { id: 15, label: 'Metalmecânica', action: () => setAreaTecnica('metalmecanica') },
-    { id: 17, label: 'Eletrônica / Metalmecânica / Manutenção', action: () => setAreaTecnica('eletronica_e_automacao/metalmecanica/manutencao_e_operacao') },
-    { id: 20, label: 'Segurança', action: () => setAreaTecnica('seguranca') },
-    { id: 21, label: 'Infraestrutura de Informação e Comunicação', action: () => setAreaTecnica('infraestrutura_de_informacao_e_comunicacao') },
-    { id: 23, label: 'Desenvolvimento de Sistemas', action: () => setAreaTecnica('desenvolvimento_de_sistemas') },
-    { id: 24, label: 'Têxtil e Vestuário / Design', action: () => setAreaTecnica('textil_e_vestuario/design') },
-  ];
 
   const opcoesLocal = [
     { id: 'all', label: 'Todos os Locais' },
@@ -67,20 +50,31 @@ export default function Solicitacao() {
 
   useEffect(() => {
     let isMounted = true;
-    async function loadProducts() {
+    async function loadProducts(refresh = false) {
       try {
-        setLoading(true);
-        const products = await api.getItems();
-        if (isMounted) setItems(products);
+        if (!refresh) setLoading(true);
+        setItemLoadError('');
+        const products = refresh ? await api.refreshItems() : await api.getItems();
+        if (isMounted) {
+          setItems((current) => {
+            const selectedById = new Map(current.map((item) => [item.id, item]));
+            return products.map((item) => ({
+              ...item,
+              approved: Boolean(selectedById.get(item.id)?.approved),
+            }));
+          });
+        }
       } catch (error) {
-        console.error('Erro ao procurar produtos na API:', error);
+        if (isMounted) setItemLoadError(error.message || 'Não foi possível carregar os itens.');
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted && !refresh) setLoading(false);
       }
     }
     loadProducts();
+    const refreshInterval = window.setInterval(() => loadProducts(true), 60_000);
     return () => {
       isMounted = false;
+      window.clearInterval(refreshInterval);
     };
   }, []);
 
@@ -113,8 +107,7 @@ export default function Solicitacao() {
       item.code?.toString().toLowerCase().includes(query.toLowerCase()) ||
       item.location?.toLowerCase().includes(query.toLowerCase());
 
-    const matchesArea =
-      areaTecnica === 'all' || item.areaTecnica === areaTecnica;
+    const matchesArea = areaTecnica === 'all' || String(item.categoria_id) === areaTecnica;
 
     const matchesLocal =
       localizacao === 'all' || item.location?.toLowerCase() === localizacao.toLowerCase();
@@ -124,32 +117,57 @@ export default function Solicitacao() {
 
   const selectedItems = items.filter((item) => item.approved);
 
-  const handleConfirmarSolicitacao = () => {
+  const handleConfirmarSolicitacao = async () => {
+    setRequestError('');
     if (!nomeSolicitante.trim()) {
-      alert('Por favor, informe o nome do solicitante.');
+      setRequestError('Informe o nome do solicitante.');
       return;
     }
     if (!dataRetirada) {
-      alert('Por favor, informe a data prevista de retirada.');
+      setRequestError('Informe a data prevista de retirada.');
+      return;
+    }
+    if (!selectedItems.length) {
+      setRequestError('Selecione ao menos um item para solicitar.');
       return;
     }
 
-    // Monta o objeto final da solicitação caso queira enviar para uma API
-    const dadosSolicitacao = {
-      solicitante: nomeSolicitante,
-      dataRetirada: dataRetirada,
-      itens: selectedItems.map((item) => ({
-        id: item.id,
-        code: item.code,
-        name: item.name,
-        quantidadeSolicitada: quantidadesSolicitadas[item.id] || 1,
-        location: item.location
-      }))
-    };
+    const invalidItem = selectedItems.find((item) => {
+      const quantity = Number(quantidadesSolicitadas[item.id]);
+      return !item.estoque_id || !Number.isInteger(quantity) || quantity < 1 || quantity > Number(item.stock);
+    });
+    if (invalidItem) {
+      setRequestError(`Confira a quantidade de "${invalidItem.name}" e se há estoque vinculado.`);
+      return;
+    }
 
-    console.log('Dados da Solicitação:', dadosSolicitacao);
-    alert(`Solicitação de ${nomeSolicitante} enviada com sucesso para retirada em ${dataRetirada.split('-').reverse().join('/')}!`);
-    setIsModalOpen(false);
+    setIsSending(true);
+    try {
+      const [year, month, day] = dataRetirada.split('-');
+      await api.createSolicitacoes(selectedItems.map((item) => ({
+          is_aceito: false,
+          obs_solicita: 'Não informado',
+          obs_recusa: null,
+          tipo: 'EmAndamento',
+          estado: 'SA',
+          qtd_acao: Number(quantidadesSolicitadas[item.id]),
+          dt_acao: new Date().toISOString(),
+          estoque_id: item.estoque_id,
+          solicitante: nomeSolicitante.trim(),
+          dt_solicitacao: new Date().toISOString(),
+          dt_retirada: `${year}-${month}-${day}T00:00:00`,
+        })));
+      setIsModalOpen(false);
+      setItems((current) => current.map((item) => ({ ...item, approved: false })));
+      setQuantidadesSolicitadas({});
+      setNomeSolicitante('');
+      setDataRetirada('');
+      alert('Solicitação(ões) enviada(s) para o Estoquista com sucesso.');
+    } catch (error) {
+      setRequestError(error.message || 'Não foi possível registrar a solicitação. Tente novamente.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -184,11 +202,15 @@ export default function Solicitacao() {
                       className="flex items-center justify-center gap-2 bg-[#CDCDCD] hover:bg-[#BFBFBF] text-gray-800 font-semibold px-4 py-2.5 rounded-xl transition-colors"
                     >
                       <ChevronDown className="w-5 h-5 text-gray-700" />
-                      <span>Área {areaTecnica !== 'all' && areaTecnica.label}</span>
+                      <span>
+                        Área{areaTecnica !== 'all'
+                          ? `: ${items.find((item) => String(item.categoria_id) === areaTecnica)?.categoria_nome || 'Selecionada'}`
+                          : ''}
+                      </span>
                     </button>
 
                     {filtroArea && (
-                      <div className="absolute left-0 mt-2 w-72 max-h-80 overflow-y-auto bg-white border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
+                      <div className="absolute left-0 mt-2 w-72 max-h-80 overflow-y-auto bg-[#D1D5DB] border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
                         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 mb-1">
                           <span className="text-xs font-bold text-gray-600 uppercase">Área Técnica</span>
                           <button
@@ -198,21 +220,24 @@ export default function Solicitacao() {
                             <Trash2 className="w-3.5 h-3.5" /> Limpar
                           </button>
                         </div>
-                        {opcoesArea.map((op) => (
+                        {[...new Map(items
+                          .filter((item) => item.categoria_id != null && item.categoria_nome)
+                          .map((item) => [String(item.categoria_id), item.categoria_nome]))
+                          .entries()]
+                          .map(([id, label]) => (
                           <button
-                            key={op.id}
+                            key={id}
                             onClick={() => {
-                              op.action();
+                              setAreaTecnica(id);
                               setFiltroArea(false);
                             }}
                             className={`text-left px-3 py-2 text-xs rounded-lg transition-colors ${
-                              (areaTecnica === 'all' && op.label === 'Todas as Áreas') || 
-                              areaTecnica === op.action.toString()
+                              areaTecnica === id
                                 ? 'bg-blue-100 text-blue-900 font-bold'
                                 : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >
-                            {op.label}
+                            {label}
                           </button>
                         ))}
                       </div>
@@ -230,7 +255,7 @@ export default function Solicitacao() {
                     </button>
 
                     {filtroLocal && (
-                      <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
+                      <div className="absolute left-0 mt-2 w-56 bg-[#D1D5DB] border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
                         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 mb-1">
                           <span className="text-xs font-bold text-gray-600 uppercase">Localidade</span>
                           <button
@@ -267,7 +292,7 @@ export default function Solicitacao() {
 
                 {/* Botão para abrir o Pop-up */}
                 <button
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => { setRequestError(''); setIsModalOpen(true); }}
                   className="w-full lg:w-auto bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold px-8 py-2.5 rounded-xl transition-colors shadow-md cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Solicitar</span>
@@ -280,6 +305,7 @@ export default function Solicitacao() {
               </div>
 
               {/* Tabela dos Produtos */}
+              {itemLoadError && <div role="alert" className="text-red-700 font-medium">{itemLoadError}</div>}
               <div className="overflow-x-auto w-full rounded-xl border-2 border-gray-400">
                 <div className="min-w-[540px] w-full bg-[#d6d6d6]">
                   <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-[#D0D5DE] font-bold text-black text-sm rounded-t-xl text-center border-b border-slate-400">
@@ -370,7 +396,7 @@ export default function Solicitacao() {
             <div className="py-4 space-y-4 overflow-y-auto pr-1 flex-1">
               
               {/* Campos do Solicitante e Data */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-xl border border-slate-300 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#E5E7EB] p-4 rounded-xl border border-slate-300 shadow-sm">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
                     <User className="w-3.5 h-3.5 text-blue-600" /> Nome do Solicitante
@@ -380,6 +406,7 @@ export default function Solicitacao() {
                     value={nomeSolicitante}
                     onChange={(e) => setNomeSolicitante(e.target.value)}
                     placeholder="Digite seu nome completo"
+                    required
                     className="bg-gray-100 border border-gray-300 text-gray-800 text-xs px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                   />
                 </div>
@@ -393,6 +420,7 @@ export default function Solicitacao() {
                     value={dataRetirada}
                     onChange={(e) => setDataRetirada(e.target.value)}
                     className="bg-gray-100 border border-gray-300 text-gray-800 text-xs px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                    required
                   />
                 </div>
               </div>
@@ -413,7 +441,7 @@ export default function Solicitacao() {
                   {selectedItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-3 bg-white border border-slate-300 rounded-xl gap-3 shadow-sm"
+                      className="flex items-center justify-between p-3 bg-[#E5E7EB] border border-slate-300 rounded-xl gap-3 shadow-sm"
                     >
                       <div className="flex items-center gap-3 overflow-hidden flex-1">
                         {item.image && (
@@ -436,8 +464,12 @@ export default function Solicitacao() {
                           <input
                             type="number"
                             min="1"
+                            max={item.stock}
                             value={quantidadesSolicitadas[item.id] || 1}
-                            onChange={(e) => handleQuantidadeChange(item.id, e.target.value)}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              handleQuantidadeChange(item.id, Math.min(value || 1, Number(item.stock) || 1));
+                            }}
                             className="w-14 text-center bg-gray-100 border border-gray-300 text-xs font-bold py-1 rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
@@ -469,6 +501,8 @@ export default function Solicitacao() {
               )}
             </div>
 
+            {requestError && <div role="alert" className="rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-800">{requestError}</div>}
+
             {/* Ações do Pop-up */}
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-400 shrink-0">
               <button
@@ -480,7 +514,7 @@ export default function Solicitacao() {
               </button>
               <button
                 type="button"
-                disabled={selectedItems.length === 0}
+                disabled={selectedItems.length === 0 || isSending}
                 onClick={handleConfirmarSolicitacao}
                 className={`px-5 py-2 rounded-xl text-sm font-semibold shadow-md transition-colors ${
                   selectedItems.length > 0
@@ -488,7 +522,7 @@ export default function Solicitacao() {
                     : 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-50'
                 }`}
               >
-                Confirmar
+                {isSending ? 'Enviando...' : 'Confirmar'}
               </button>
             </div>
           </div>

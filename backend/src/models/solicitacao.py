@@ -13,6 +13,8 @@ class SolicitacaoEstadoEnum(enum.Enum):
 class SolicitacaoTipoEnum(enum.Enum):
     Cancelada = "Cancelada" 
     EmAndamento = "EmAndamento"
+    Separada = "Separada"
+    Retirada = "Retirada"
     Concluida = "Concluida"
 
 class SolicitacaoModel(Base):
@@ -22,6 +24,7 @@ class SolicitacaoModel(Base):
     is_aceito = Column(Boolean, nullable=False)
     obs_solicita = Column(Text, nullable=True)
     obs_recusa = Column(Text, nullable=True)
+    obs_pad = Column(Text, nullable=True)
     tipo = Column(Enum(SolicitacaoTipoEnum), nullable=False)
     estado = Column(Enum(SolicitacaoEstadoEnum), nullable=False, default=SolicitacaoEstadoEnum.SA)
     qtd_acao = Column(Integer, nullable=False)
@@ -30,10 +33,11 @@ class SolicitacaoModel(Base):
     dt_solicitacao = Column(DateTime, nullable=True)
     dt_retirada = Column(DateTime, nullable=True)
 
-    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum, qtd_acao: int, dt_acao: datetime = datetime.now(), solicitante: str | None = None, dt_solicitacao: datetime | None = None, dt_retirada: datetime | None = None) -> None:
+    def __init__(self, is_aceito: bool, obs_solicita: str, obs_recusa: str, tipo: SolicitacaoTipoEnum, estado: SolicitacaoEstadoEnum, qtd_acao: int, dt_acao: datetime = datetime.now(), solicitante: str | None = None, dt_solicitacao: datetime | None = None, dt_retirada: datetime | None = None, obs_pad: str | None = None) -> None:
         self.is_aceito = is_aceito
         self.obs_solicita = obs_solicita
         self.obs_recusa = obs_recusa
+        self.obs_pad = obs_pad
         self.tipo = tipo
         self.estado = estado
         self.qtd_acao = qtd_acao

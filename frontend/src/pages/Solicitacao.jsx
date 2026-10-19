@@ -245,8 +245,8 @@ export default function Solicitacao() {
     try {
       setIsSending(true);
 
-      await Promise.all(
-        selectedItems.map(async (item) => {
+      await api.createSolicitacoes(
+        selectedItems.map((item) => {
           const details = requestDetails[item.id];
           const qtdPedida = Math.min(
             Math.max(1, Number(details.quantidade) || '-'),
@@ -257,7 +257,7 @@ export default function Solicitacao() {
             throw new Error(`O produto "${item.name}" não possui estoque vinculado.`);
           }
 
-          return api.createSolicitacao({
+          return {
             is_aceito: false,
             obs_solicita: details.motivo?.trim() || 'Não informado',
             obs_recusa: null,
@@ -269,7 +269,7 @@ export default function Solicitacao() {
             solicitante: details.solicitante.trim(),
             dt_solicitacao: dateToIso(details.dataSolicitacao),
             dt_retirada: dateToIso(details.dataRetirada),
-          });
+          };
         })
       );
 
@@ -278,7 +278,7 @@ export default function Solicitacao() {
       navigate('/solicitacao');
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
-      alert('Ocorreu um erro ao gravar a solicitação.');
+      alert(error.message || 'Ocorreu um erro ao gravar a solicitação.');
     } finally {
       setIsSending(false);
     }
@@ -331,7 +331,7 @@ export default function Solicitacao() {
                     </button>
 
                     {filtro && (
-                      <div className="absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white/95 p-1.5 shadow-2xl backdrop-blur-md transition-all">
+                      <div className="absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden rounded-2xl border border-slate-300 bg-[#D1D5DB]/95 p-1.5 shadow-2xl backdrop-blur-md transition-all">
                         <div className="pb-1 mb-1 border-b border-gray-200/80">
                           <button onClick={() => { setQuery(''); setAreaTecnica(''); setfiltro(false); }} className="flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-sm font-semibold text-red-600 hover:bg-[#BFBFBF]">
                             <span>Limpar Filtros</span>

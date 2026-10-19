@@ -3,9 +3,9 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:?Configure DB_NAME no arquivo .env}
+      POSTGRES_USER: ${DB_USER:?Configure DB_USER no arquivo .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no arquivo .env}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -19,7 +19,6 @@ services:
 
   minio:
     image: cgr.dev/chainguard/minio:latest
-    container_name: minio
     restart: always
     ports:
       - "9000:9000"
@@ -36,10 +35,72 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes --requirepass ${DB_PASSWORD}
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no arquivo .env}
+    command: ["sh", "-c", "redis-server --appendonly yes --requirepass \"$${DB_PASSWORD}\""]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${DB_PASSWORD}\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
-      - redis_data:/data_redis
-    
+      - redis_data:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+      MINIO_ENDPOINT: http://minio:9000
+      DNS_RETORNO: ${PUBLIC_BASE_URL:-http://localhost}/master/redefinir-senha
+      FRONTEND_PUBLIC_ORIGINS: ${FRONTEND_PUBLIC_ORIGINS:-http://localhost,http://127.0.0.1}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    ports:
+      - "8000:8000"
+
+  master:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: /
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  estoquista:
+    build:
+      context: .
+      dockerfile: frontend/Estoquista/Dockerfile
+      args:
+        VITE_API_URL: /
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/gateway/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - master
+      - estoquista
+      - backend
+    ports:
+      - "80:80"
+
 volumes:
   redis_data:
   minio_data:

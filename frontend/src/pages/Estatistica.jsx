@@ -1,6 +1,6 @@
 import AppShell from '../components/AppShell.jsx';
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ClipboardList, Package, Warehouse } from 'lucide-react';
+import { AlertTriangle, ClipboardList, Download, Package, Warehouse } from 'lucide-react';
 import { api } from '../services/api.js';
 
 function formatStatus(value) {
@@ -11,6 +11,8 @@ export default function Estatistica() {
   const [items, setItems] = useState([]);
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exportando, setExportando] = useState(false);
+  const [erroExportacao, setErroExportacao] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -33,7 +35,7 @@ export default function Estatistica() {
     () => items.filter((item) => Number(item.stock || 0) <= Number(item.badgeValue || 0)),
     [items]
   );
-  const pendentes = solicitacoes.filter(({ solicitacao }) => solicitacao?.tipo === 'EmAndamento');
+  const pendentes = solicitacoes.filter(({ solicitacao }) => ['EmAndamento', 'Separada'].includes(solicitacao?.tipo));
   const unidades = useMemo(() => {
     const counts = new Map();
     solicitacoes.forEach(({ estoque_solicitado: request }) => {
@@ -43,14 +45,38 @@ export default function Estatistica() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [solicitacoes]);
 
+  async function exportarRelatorio() {
+    setErroExportacao('');
+    setExportando(true);
+    try {
+      await api.exportarRelatorioExcel();
+    } catch (error) {
+      setErroExportacao(error.message || 'Não foi possível gerar o relatório.');
+    } finally {
+      setExportando(false);
+    }
+  }
+
   return (
     <AppShell activeTab="Estatísticas">
       <div className="min-h-full bg-[#D8DCE3] p-4 text-slate-900 sm:p-6 md:p-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard de estoque</h1>
-            <p className="mt-1 text-sm text-slate-600">Indicadores calculados a partir dos produtos, estoques e solicitações cadastrados.</p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">Dashboard de estoque</h1>
+              <p className="mt-1 text-sm text-slate-600">Indicadores calculados a partir dos produtos, estoques e solicitações cadastrados.</p>
+            </div>
+            <button
+              type="button"
+              onClick={exportarRelatorio}
+              disabled={exportando}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#164194] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#0C3B7C] disabled:cursor-wait disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {exportando ? 'Gerando relatório...' : 'Exportar relatório Excel'}
+            </button>
           </div>
+          {erroExportacao && <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-800">{erroExportacao}</p>}
 
           {loading ? (
             <div className="rounded-3xl bg-[#E0E0E0] p-8 text-center font-medium text-slate-600">Carregando indicadores...</div>

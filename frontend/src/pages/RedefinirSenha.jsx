@@ -33,7 +33,7 @@ export default function RedefinirSenha() {
   return (
     <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <img src="/Senai.png" alt="SENAI" className="mx-auto mb-6 h-14 w-auto" />
+        <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" className="mx-auto mb-6 h-14 w-auto" />
         <h1 className="text-center text-2xl font-bold text-[#0C3B7C]">Criar nova senha</h1>
         <p className="mt-2 text-center text-slate-500">Escolha uma senha segura para sua conta.</p>
         <label className="mt-6 block text-sm font-semibold text-slate-700" htmlFor="new-password">Nova senha</label>

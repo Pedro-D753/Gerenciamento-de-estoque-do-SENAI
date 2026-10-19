@@ -17,7 +17,7 @@ O SGE(Sistema de Gerenciamento de Estoque) foi desenvolvido para resolve o probl
 
 # Instalação
 
-Para instalar o SGE, verificar se o .env está devidamente configurado, caso sim siga os passo abaixo:
+Para iniciar o SGE com Docker, configure o arquivo `.env` e siga os passos abaixo:
 
 1. Clone o repositório:
     ```bash 
@@ -27,12 +27,23 @@ Para instalar o SGE, verificar se o .env está devidamente configurado, caso sim
     ```bash 
     cd SGE
     ```
-3. Rode o Docker:
+3. Crie o arquivo de configuração local a partir do exemplo e preencha os dados de banco, JWT e e-mail:
+    ```bash
+    cp .env.example .env
+    ```
+   No `.env`, use `DB_HOST=localhost`, `REDIS_HOST=localhost` e `MINIO_ENDPOINT=http://127.0.0.1:9000` para desenvolvimento fora do Docker. Para Docker, o Compose configura os hosts dos serviços e monta o link de redefinição como `${PUBLIC_BASE_URL}/master/redefinir-senha`; defina `PUBLIC_BASE_URL` sem barra final se usar outro domínio.
+4. Inicie os serviços:
     ```bash 
     docker compose up --build
     ```
 
-Apos isso basta acessar http://localhost:8000/api/docs .
+O Compose inicia a API, PostgreSQL, Redis, MinIO e as duas interfaces. Acesse:
+
+- Master: http://localhost/master/
+- Estoquista: http://localhost/estoquista/
+- Documentação da API: http://localhost:8000/docs
+
+O caminho raiz `/` redireciona para `/master/`. As requisições da API continuam disponíveis nas rotas existentes, por exemplo `http://localhost:8000/produtos/`.
 
 # Equipe do sistema:
 ### Instrutor Orientador
@@ -52,4 +63,3 @@ Apos isso basta acessar http://localhost:8000/api/docs .
 
 ### Lider Técnico e Documentação
 - [Pedro Domiense](https://github.com/Pedro-D753)
-

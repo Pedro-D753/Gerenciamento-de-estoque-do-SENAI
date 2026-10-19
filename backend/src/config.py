@@ -23,7 +23,7 @@ DB_PASSWORD = quote_plus(str(DB_PASSWORD_REDIS))
 DB_USER = getenv("DB_USER", None)
 DB_NAME = getenv("DB_NAME", None)
 DB_HOST = getenv("DB_HOST", "db")
-REDIS_HOST = getenv("DB_HOST", DB_HOST)
+REDIS_HOST = getenv("REDIS_HOST", DB_HOST)
 
 if DB_USER == None: 
     raise EnvVaulesErros("O campo \"DB_USER\" não pode ser null(None) ou ser apenas espaços.")
