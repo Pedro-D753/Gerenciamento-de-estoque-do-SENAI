@@ -11,8 +11,8 @@ export default function AppShell({ activeTab, children }) {
   } ${activeTab === tab ? 'bg-[#6B84A6] text-white shadow-md' : 'text-white hover:bg-white/25'}`;
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#F4F6F9]">
-      <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center border-b border-gray-200 bg-white px-4 py-2 md:px-6">
+    <div className="flex min-h-screen w-full flex-col bg-[#EBEAED]">
+      <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center border-b border-[#B7B6B9] bg-[#EBEAED] px-4 py-2 md:px-6">
         <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="Logo Senai" className="h-10 w-auto object-contain p-2 md:h-12" />
         <button
           type="button"
@@ -42,7 +42,7 @@ export default function AppShell({ activeTab, children }) {
             <a href="/master/Manual_Assistente.pdf" download className={`mt-auto !bg-[#E84910] text-white transition-all duration-200 hover:!bg-[#C63D0D] ${linkClass('Manual do Usuário')}`} title="Baixar manual do usuário"><FileText className="h-6 w-6 shrink-0" />{expanded && <span className="truncate">Manual do Usuário</span>}</a>
           </div>
         </aside>
-        <main className="flex min-w-0 flex-1 flex-col bg-[#D8DCE3]">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col bg-[#EBEAED]">{children}</main>
       </div>
     </div>
   );

@@ -306,14 +306,14 @@ export default function Solicitacao() {
       <div className="solicitacao-page flex min-h-full w-full flex-1 flex-col">
         
 
-        <main className="flex min-w-0 flex-1 flex-col bg-[#D8DCE3]">
-          <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-slate-300 bg-[#D8DCE3] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
+        <main className="flex min-w-0 flex-1 flex-col bg-[#EBEAED]">
+          <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-[#B7B6B9] bg-[#EBEAED] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
             <button onClick={() => navigate('/solicitacao/nova')} className="whitespace-nowrap rounded-t-xl border-t border-x border-slate-300 bg-[#CBD0D8] px-6 py-2.5 font-bold text-slate-900 shadow-xs sm:px-12">Solicitar</button>
             <button onClick={() => navigate('/solicitacao/historico')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-[#CBD0D8]/60 sm:px-12">Histórico</button>
           </div>
 
           <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 sm:p-6 md:p-8">
-            <div className="flex w-full flex-col gap-6 rounded-3xl bg-[#E0E0E0] p-4 shadow-xl sm:p-6">
+            <div className="flex w-full flex-col gap-6 rounded-3xl bg-[#B7B6B9] p-4 shadow-xl sm:p-6">
               <div className="flex w-full flex-col items-center justify-between gap-4 lg:flex-row">
                 <div className="flex w-full flex-1 flex-col items-center gap-3 transition-all duration-300 sm:flex-row">
                   <input

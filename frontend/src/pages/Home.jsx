@@ -172,7 +172,7 @@ export default function Solicitacao() {
 
   return (
     <AppShell activeTab="Visão Geral">
-      <div className="w-full min-h-screen flex flex-col bg-[#F4F6F9]">
+      <div className="w-full min-h-screen flex flex-col bg-[#EBEAED]">
       {/* Cabeçalho */}
       
 
@@ -180,9 +180,9 @@ export default function Solicitacao() {
         {/* Sidebar */}
         
 
-        <main className="flex-1 flex flex-col min-w-0 bg-[#D8DCE3]">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#EBEAED]">
           <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col gap-6 overflow-x-hidden">
-            <div className="w-full bg-[#E0E0E0] p-4 sm:p-6 rounded-3xl flex flex-col gap-6 shadow-xl relative">
+            <div className="w-full bg-[#B7B6B9] p-4 sm:p-6 rounded-3xl flex flex-col gap-6 shadow-xl relative">
               
               {/* Barra de Busca e Filtros */}
               <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-4">

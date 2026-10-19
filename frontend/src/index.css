@@ -11,8 +11,8 @@
     margin: 0;
     padding: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f3f4f6;
-    color: #1f2937;
+    background-color: #EBEAED;
+    color: #2E2D2F;
   }
 }
 
@@ -23,23 +23,28 @@
   flex-direction: column;
 }
 
+#root,
+#root * {
+  font-weight: 700;
+}
+
 .solicitacao-page .bg-\[\#1F2937\] {
-  background-color: #ffffff !important;
+  background-color: #EBEAED !important;
 }
 
 .solicitacao-page .bg-\[\#111827\] {
-  background-color: #ffffff !important;
+  background-color: #EBEAED !important;
 }
 
 .solicitacao-page .text-gray-200,
 .solicitacao-page .text-gray-300,
 .solicitacao-page .text-white {
-  color: #172033 !important;
+  color: #2E2D2F !important;
 }
 
 .solicitacao-page .border-slate-700,
 .solicitacao-page .border-slate-700\/60 {
-  border-color: #e5e7eb !important;
+  border-color: #B7B6B9 !important;
 }
 
 .solicitacao-page .bg-blue-900\/40 {
@@ -52,8 +57,39 @@
 
 .solicitacao-page input,
 .solicitacao-page select {
-  border-color: #ccd4df;
-  background-color: #fff;
-  color: #172033;
+  border-color: #B7B6B9;
+  background-color: #EBEAED;
+  color: #2E2D2F;
 }
 
+[class~="bg-gray-50"],
+[class~="bg-gray-100"],
+[class~="bg-slate-50"],
+[class~="bg-slate-100"] {
+  background-color: #EBEAED !important;
+}
+
+[class~="bg-gray-200"],
+[class~="bg-gray-300"],
+[class~="bg-slate-200"],
+[class~="bg-slate-300"] {
+  background-color: #B7B6B9 !important;
+}
+
+[class~="border-gray-200"],
+[class~="border-gray-300"],
+[class~="border-slate-200"],
+[class~="border-slate-300"] {
+  border-color: #868588 !important;
+}
+
+[class~="text-gray-500"],
+[class~="text-gray-600"],
+[class~="text-gray-700"],
+[class~="text-gray-800"],
+[class~="text-slate-500"],
+[class~="text-slate-600"],
+[class~="text-slate-700"],
+[class~="text-slate-800"] {
+  color: #58575A !important;
+}

@@ -150,6 +150,7 @@ export const api = {
   productsForCurrentUnit: () => loadProductsForCurrentUnit(),
   refreshProductsForCurrentUnit: () => loadProductsForCurrentUnit(true),
   currentUser: () => request('/auth/me'),
+  solicitarRedefinicaoSenha: (email) => request(`/auth/enviar_email_reste_senha/${encodeURIComponent(email)}`),
   stocksForCurrentUnit: () => request('/estoques/minha-unidade'),
   product: async (id) => product(await request(`/produtos/${id}`)),
   createProduct: async (data) => { const result = await request('/produtos/', { method: 'POST', body: data }); invalidateItemsCache(); return result; },

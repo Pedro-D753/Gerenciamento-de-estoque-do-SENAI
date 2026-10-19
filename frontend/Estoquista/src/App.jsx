@@ -2,17 +2,38 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
 import { Copy, FileText, History, LayoutDashboard, Menu, Package, ScanLine } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 function Login({ onLogin }) {
   const [matricula, setMatricula] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   async function submit(event) {
     event.preventDefault(); setError(''); setLoading(true);
     try { await api.login(matricula, senha); onLogin(); }
     catch (requestError) { setError(requestError.message || 'Falha no login.'); }
     finally { setLoading(false); }
+  }
+  async function submitForgotPassword(event) {
+    event.preventDefault();
+    setForgotError('');
+    setForgotMessage('');
+    setForgotLoading(true);
+    try {
+      await api.solicitarRedefinicaoSenha(email.trim());
+      setForgotMessage('Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.');
+      setEmail('');
+    } catch (requestError) {
+      setForgotError(requestError.message || 'Não foi possível enviar o e-mail de redefinição.');
+    } finally {
+      setForgotLoading(false);
+    }
   }
   return <main className="login"><form className="card login-card" onSubmit={submit}>
     <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" />
@@ -20,8 +41,15 @@ function Login({ onLogin }) {
     <label>Matrícula<input value={matricula} onChange={e => setMatricula(e.target.value)} required /></label>
     <label>Senha<input type="password" value={senha} onChange={e => setSenha(e.target.value)} required /></label>
     {error && <div className="error">{error}</div>}
+    <button type="button" className="forgot-button" onClick={() => { setShowForgotPassword(true); setForgotError(''); setForgotMessage(''); }}>Redefinir senha</button>
     <button disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
-  </form></main>;
+  </form>{showForgotPassword && <div className="forgot-backdrop"><form className="card forgot-card" onSubmit={submitForgotPassword}>
+    <h2>Redefinir senha</h2><p>Informe o e-mail cadastrado para receber o link de redefinição.</p>
+    <label>E-mail<input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus /></label>
+    {forgotError && <div className="error">{forgotError}</div>}
+    {forgotMessage && <div className="success">{forgotMessage}</div>}
+    <div className="actions"><button type="button" className="secondary" onClick={() => setShowForgotPassword(false)}>Cancelar</button><button type="submit" disabled={forgotLoading}>{forgotLoading ? 'Enviando...' : 'Enviar link'}</button></div>
+  </form></div>}</main>;
 }
 
 function Layout({ page, setPage, logout, unit, children }) {
@@ -29,7 +57,7 @@ function Layout({ page, setPage, logout, unit, children }) {
   const activePage = page === 'new-product' ? 'products' : page;
   const linkClass = (key) => `sidebar-link ${activePage === key ? 'active' : ''}`;
   return <div className="app">
-    <header><img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" /><strong>Estoquista</strong><button className="link-button" onClick={logout}>Sair</button><div className="header-accent" /></header>
+    <header><img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" /><button className="link-button" onClick={logout}>Sair</button><div className="header-accent" /></header>
     <div className="body">
       <aside className={`sidebar ${expanded ? 'expanded' : 'collapsed'}`}>
         <div className="sidebar-links">
@@ -416,45 +444,44 @@ function NewProduct({ setPage }) {
 
 function BarcodeScanner() {
   const videoRef = useRef(null);
+  const completedRef = useRef(false);
   const [error, setError] = useState('');
   const [manualValue, setManualValue] = useState('');
   const sessionId = new URLSearchParams(window.location.search).get('session');
   useEffect(() => {
-    let stream;
-    let timer;
+    let reader;
+    let controls;
     async function start() {
-      if (!('BarcodeDetector' in window)) {
-        setError('Este navegador não oferece leitura automática. Digite o código abaixo.');
-        return;
-      }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
         const videoElement = videoRef.current;
         if (!videoElement) return;
-        videoElement.srcObject = stream;
-        await videoElement.play();
-        const detector = new window.BarcodeDetector();
-        const scan = async () => {
-          const codes = await detector.detect(videoElement);
-          if (codes[0]?.rawValue) {
-            const value = codes[0].rawValue;
-            await api.submitBarcode(sessionId, value);
-            setManualValue(value);
-            setError('Código enviado para o computador. Você pode fechar esta página.');
-            stream?.getTracks().forEach((track) => track.stop());
-            return;
-          }
-          timer = requestAnimationFrame(scan);
-        };
-        scan();
+        reader = new BrowserMultiFormatReader();
+        controls = await reader.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } } },
+          videoElement,
+          async (result, scanError) => {
+            if (!result || scanError || completedRef.current) return;
+            const value = result.getText();
+            completedRef.current = true;
+            try {
+              await api.submitBarcode(sessionId, value);
+              setManualValue(value);
+              setError('Código enviado para o computador. Você pode fechar esta página.');
+              controls?.stop();
+            } catch (requestError) {
+              completedRef.current = false;
+              setError(requestError.message || 'Não foi possível enviar o código.');
+            }
+          },
+        );
       } catch (requestError) {
         setError(requestError.message || 'Não foi possível acessar a câmera. Verifique a permissão do navegador.');
       }
     }
     start();
     return () => {
-      if (timer) cancelAnimationFrame(timer);
-      stream?.getTracks().forEach((track) => track.stop());
+      controls?.stop();
+      reader?.reset();
     };
   }, [sessionId]);
   function finishManual() {

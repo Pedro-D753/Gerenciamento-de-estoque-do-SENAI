@@ -156,14 +156,14 @@ export default function Historico() {
 
   return (
     <AppShell activeTab="Solicitação">
-      <div className="historico-page flex min-h-full w-full flex-col bg-[#D8DCE3]">
+      <div className="historico-page flex min-h-full w-full flex-col bg-[#EBEAED]">
       
 
       <div className="flex min-h-full w-full flex-1">
         
 
-        <main className="flex flex-1 min-w-0 flex-col bg-[#D8DCE3]">
-          <div className="flex w-full items-center justify-between border-b border-slate-300 bg-[#D8DCE3] px-4 pt-4 pb-0 sm:px-8">
+        <main className="flex flex-1 min-w-0 flex-col bg-[#EBEAED]">
+          <div className="flex w-full items-center justify-between border-b border-[#B7B6B9] bg-[#EBEAED] px-4 pt-4 pb-0 sm:px-8">
             <div className="rounded-t-xl border-t border-x border-slate-300 bg-[#CBD0D8] px-6 py-2.5 font-bold text-slate-900 shadow-xs sm:px-12">
               Histórico
             </div>
@@ -177,7 +177,7 @@ export default function Historico() {
           </div>
 
           <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 sm:p-6 md:p-8">
-            <div className="flex w-full flex-col gap-6 rounded-3xl bg-[#E0E0E0] p-4 shadow-xl sm:p-6">
+            <div className="flex w-full flex-col gap-6 rounded-3xl bg-[#B7B6B9] p-4 shadow-xl sm:p-6">
               <div className="flex w-full flex-col items-center justify-between gap-4 lg:flex-row">
                 <div className="flex w-full flex-1 flex-col items-center gap-3 sm:flex-row">
                   <input
@@ -336,7 +336,7 @@ export default function Historico() {
       </div>
       {rejectingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
-          <form onSubmit={submitRejection} className="w-full max-w-lg rounded-2xl bg-[#E0E0E0] p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="master-reject-title">
+          <form onSubmit={submitRejection} className="w-full max-w-lg rounded-2xl bg-[#B7B6B9] p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="master-reject-title">
             <div className="mb-4 flex items-center justify-between">
               <h2 id="master-reject-title" className="m-0 text-xl font-bold text-slate-900">Recusar solicitação #{rejectingItem.id}</h2>
               <button type="button" onClick={() => setRejectingItem(null)} className="rounded-lg p-2 text-slate-700 hover:bg-slate-300" aria-label="Fechar">

@@ -59,7 +59,7 @@ export default function Estatistica() {
 
   return (
     <AppShell activeTab="Estatísticas">
-      <div className="min-h-full bg-[#D8DCE3] p-4 text-slate-900 sm:p-6 md:p-8">
+      <div className="min-h-full bg-[#EBEAED] p-4 text-[#2E2D2F] sm:p-6 md:p-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -79,7 +79,7 @@ export default function Estatistica() {
           {erroExportacao && <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-800">{erroExportacao}</p>}
 
           {loading ? (
-            <div className="rounded-3xl bg-[#E0E0E0] p-8 text-center font-medium text-slate-600">Carregando indicadores...</div>
+            <div className="rounded-3xl bg-[#B7B6B9] p-8 text-center font-medium text-[#58575A]">Carregando indicadores...</div>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -90,7 +90,7 @@ export default function Estatistica() {
               </div>
 
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <section className="rounded-3xl bg-[#E0E0E0] p-5 shadow-xl">
+                <section className="rounded-3xl bg-[#B7B6B9] p-5 shadow-xl">
                   <h2 className="mb-4 text-lg font-bold">Solicitações recentes</h2>
                   {solicitacoes.length === 0 ? (
                     <p className="text-sm text-slate-600">Nenhuma solicitação cadastrada.</p>
@@ -107,7 +107,7 @@ export default function Estatistica() {
                   )}
                 </section>
 
-                <section className="rounded-3xl bg-[#E0E0E0] p-5 shadow-xl">
+                <section className="rounded-3xl bg-[#B7B6B9] p-5 shadow-xl">
                   <h2 className="mb-4 text-lg font-bold">Distribuição por unidade</h2>
                   {unidades.length === 0 ? (
                     <p className="text-sm text-slate-600">Ainda não há solicitações por unidade.</p>
@@ -124,7 +124,7 @@ export default function Estatistica() {
                 </section>
               </div>
 
-              <section className="rounded-3xl bg-[#E0E0E0] p-5 shadow-xl">
+              <section className="rounded-3xl bg-[#B7B6B9] p-5 shadow-xl">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="text-lg font-bold">Itens críticos</h2>
                   <span className="text-sm text-slate-600">{pendentes.length} solicitação(ões) em andamento</span>
@@ -152,7 +152,7 @@ export default function Estatistica() {
 
 function Metric({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-3xl bg-[#E0E0E0] p-5 shadow-xl">
+    <div className="rounded-3xl bg-[#B7B6B9] p-5 shadow-xl">
       <div className="flex items-center gap-3 text-slate-600">
         <Icon className="h-5 w-5" />
         <span className="text-sm font-semibold">{label}</span>

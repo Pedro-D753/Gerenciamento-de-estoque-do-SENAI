@@ -214,7 +214,7 @@ export default function App() {
 
   return (
     <AppShell activeTab="Solicitação">
-      <div className="flex min-h-screen w-full flex-col bg-[#F4F6F9] font-sans text-gray-800">
+      <div className="flex min-h-screen w-full flex-col bg-[#EBEAED] font-sans text-[#2E2D2F]">
       
       {/* HEADER SENAI */}
       
@@ -225,10 +225,10 @@ export default function App() {
         
 
         {/* CONTEÚDO PRINCIPAL */}
-        <main className="flex flex-1 min-w-0 flex-col bg-[#D8DCE3]">
+        <main className="flex flex-1 min-w-0 flex-col bg-[#EBEAED]">
           
           {/* ABAS: SOLICITAR E HISTÓRICO */}
-          <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-slate-300 bg-[#D8DCE3] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
+          <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-[#B7B6B9] bg-[#EBEAED] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
             <button
               onClick={() => setActiveTab('Solicitar')}
               className={`whitespace-nowrap rounded-t-xl px-6 py-2.5 font-bold transition-all sm:px-12 ${

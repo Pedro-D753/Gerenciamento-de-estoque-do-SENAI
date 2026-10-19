@@ -31,19 +31,19 @@ function RequireAdmin() {
   }, []);
 
   if (access === 'loading') {
-    return <main className="grid min-h-screen place-items-center bg-[#D8DCE3] font-semibold text-slate-700">Verificando acesso...</main>;
+    return <main className="grid min-h-screen place-items-center bg-[#EBEAED] font-semibold text-[#2E2D2F]">Verificando acesso...</main>;
   }
   if (access === 'denied') {
-    return <main className="grid min-h-screen place-items-center bg-[#D8DCE3] p-6 text-center">
-      <section className="max-w-lg rounded-2xl bg-[#E0E0E0] p-8 shadow-xl">
-        <h1 className="text-2xl font-bold text-slate-900">Acesso restrito</h1>
-        <p className="mt-3 text-slate-700">Esta área é exclusiva para administradores. Acesse o sistema do Estoquista para continuar.</p>
+    return <main className="grid min-h-screen place-items-center bg-[#EBEAED] p-6 text-center">
+      <section className="max-w-lg rounded-2xl bg-[#B7B6B9] p-8 shadow-xl">
+        <h1 className="text-2xl font-bold text-[#2E2D2F]">Acesso restrito</h1>
+        <p className="mt-3 text-[#2E2D2F]">Esta área é exclusiva para administradores. Acesse o sistema do Estoquista para continuar.</p>
       </section>
     </main>;
   }
   if (access === 'error') {
-    return <main role="alert" className="grid min-h-screen place-items-center bg-[#D8DCE3] p-6 text-center">
-      <p className="max-w-lg rounded-2xl bg-[#E0E0E0] p-8 font-semibold text-slate-700 shadow-xl">Não foi possível verificar seu perfil. Tente novamente mais tarde.</p>
+    return <main role="alert" className="grid min-h-screen place-items-center bg-[#EBEAED] p-6 text-center">
+      <p className="max-w-lg rounded-2xl bg-[#B7B6B9] p-8 font-semibold text-[#2E2D2F] shadow-xl">Não foi possível verificar seu perfil. Tente novamente mais tarde.</p>
     </main>;
   }
   return <Outlet />;
