@@ -23,6 +23,13 @@ Base.metadata.create_all(bind=engine)
 # Atualiza bancos já existentes, pois create_all não altera colunas criadas anteriormente.
 with engine.begin() as connection:
     connection.execute(text("ALTER TABLE produto ALTER COLUMN img_hash DROP NOT NULL"))
+    connection.execute(
+        text(
+            "ALTER TABLE \"log\" "
+            "ALTER COLUMN matricula_quem_fez TYPE VARCHAR(255) "
+            "USING matricula_quem_fez::VARCHAR"
+        )
+    )
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS solicitante VARCHAR(255)"))
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_solicitacao TIMESTAMP"))
     connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_retirada TIMESTAMP"))

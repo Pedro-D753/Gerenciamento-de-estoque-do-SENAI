@@ -11,6 +11,13 @@ import Manual from './pages/Manual.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 import RedefinirSenha from './pages/RedefinirSenha.jsx';
 
+function estoquistaUrl() {
+  if (window.location.port === '5173') {
+    return `${window.location.protocol}//${window.location.hostname}:5174/estoquista/`;
+  }
+  return '/estoquista/';
+}
+
 function RequireAuth() {
   return api.isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
 }
@@ -34,12 +41,8 @@ function RequireAdmin() {
     return <main className="grid min-h-screen place-items-center bg-[#EBEAED] font-semibold text-[#2E2D2F]">Verificando acesso...</main>;
   }
   if (access === 'denied') {
-    return <main className="grid min-h-screen place-items-center bg-[#EBEAED] p-6 text-center">
-      <section className="max-w-lg rounded-2xl bg-[#B7B6B9] p-8 shadow-xl">
-        <h1 className="text-2xl font-bold text-[#2E2D2F]">Acesso restrito</h1>
-        <p className="mt-3 text-[#2E2D2F]">Esta área é exclusiva para administradores. Acesse o sistema do Estoquista para continuar.</p>
-      </section>
-    </main>;
+    window.location.assign(estoquistaUrl());
+    return null;
   }
   if (access === 'error') {
     return <main role="alert" className="grid min-h-screen place-items-center bg-[#EBEAED] p-6 text-center">
@@ -50,14 +53,21 @@ function RequireAdmin() {
 }
 
 function App() {
+  if (window.location.pathname === '/master/login') {
+    window.location.assign('/login');
+    return null;
+  }
+  const mountedAtMaster = window.location.pathname === '/master' || window.location.pathname.startsWith('/master/');
+  const basename = mountedAtMaster ? '/master' : '/';
+  const protectedPath = mountedAtMaster ? '/' : '/master';
   return (
-    <BrowserRouter basename="/master">
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/redefinir-senha/:jwt" element={<RedefinirSenha />} />
         <Route element={<RequireAuth />}>
           <Route element={<RequireAdmin />}>
-            <Route path="/" element={<Home />} />
+            <Route path={protectedPath} element={<Home />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/manualdousuario" element={<Manual />} />
             <Route path="/estatistica" element={<Estatistica />} />

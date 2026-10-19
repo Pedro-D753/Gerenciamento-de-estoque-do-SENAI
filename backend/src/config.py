@@ -63,8 +63,10 @@ if DNS_RETORNO == None:
 #region Minio
 # Configuração opcional do armazenamento de imagens. A conexão só é usada
 # quando uma rota de imagem for chamada.
-MINIO_ENDPOINT = getenv("MINIO_ENDPOINT", "http://minio:9000")
-MINIO_BUCKET = getenv("MINIO_BUCKET", "estoque")
+# Local development reaches the published MinIO port; Compose overrides this
+# with the service hostname through the backend environment.
+MINIO_ENDPOINT = getenv("MINIO_ENDPOINT", "http://127.0.0.1:9000")
+MINIO_BUCKET = getenv("MINIO_BUCKET", "estoque").strip().lower()
 MINIO_ACCESS_KEY = getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = getenv("MINIO_SECRET_KEY", "minioadmin")
 #endregion

@@ -12,7 +12,7 @@ export default function AppShell({ activeTab, children }) {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-[#EBEAED]">
-      <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center border-b border-[#B7B6B9] bg-[#EBEAED] px-4 py-2 md:px-6">
+      <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center border-b border-[#B7B6B9] bg-white px-4 py-2 md:px-6">
         <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="Logo Senai" className="h-10 w-auto object-contain p-2 md:h-12" />
         <button
           type="button"

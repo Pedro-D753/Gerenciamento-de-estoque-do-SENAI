@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS contrato (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS "log" (
   id SERIAL PRIMARY KEY NOT NULL,
-  matricula_quem_fez INT NOT NULL,
+  matricula_quem_fez VARCHAR(255) NOT NULL,
   acao TEXT NOT NULL,
   tb_acao VARCHAR(100) NOT NULL,
   dt_acao TIMESTAMP NOT NULL DEFAULT now()

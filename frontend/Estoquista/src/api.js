@@ -1,11 +1,20 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
-const TOKEN_KEY = 'sce_estoquista_access_token';
+const configuredApiUrl = import.meta.env.VITE_API_URL;
+const networkApiUrl = `${window.location.protocol}//${window.location.hostname}:8000`;
+const BASE_URL = (configuredApiUrl || networkApiUrl).replace(/\/+$/, '');
+const TOKEN_KEY = 'sce_access_token';
+const LEGACY_TOKEN_KEY = 'sce_estoquista_access_token';
 const ESTOQUISTA_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
 const ITEMS_CACHE_TTL = 60_000;
 let unitItemsCache = null;
 let unitItemsRequest = null;
 let itemsCacheVersion = 0;
 const productImagesCache = new Map();
+
+const tokenFromUrl = new URLSearchParams(window.location.search).get('access_token');
+if (tokenFromUrl) {
+  localStorage.setItem(TOKEN_KEY, tokenFromUrl);
+  window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+}
 
 function invalidateItemsCache() {
   itemsCacheVersion += 1;
@@ -22,7 +31,7 @@ function invalidateItemsCache() {
 async function request(path, options = {}) {
   const { body, headers = {}, ...rest } = options;
   const requestHeaders = { Accept: 'application/json', ...headers };
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
   if (token) requestHeaders.Authorization = `Bearer ${token}`;
   if (body !== undefined && !(body instanceof FormData) && !requestHeaders['Content-Type']) requestHeaders['Content-Type'] = 'application/json';
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -33,8 +42,9 @@ async function request(path, options = {}) {
   const contentType = response.headers.get('content-type') || '';
   const result = response.status === 204 ? null : contentType.includes('json') ? await response.json() : await response.text();
   if (!response.ok) {
-    if (token && (response.status === 401 || response.status === 403)) {
+    if (token && response.status === 401) {
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
       invalidateItemsCache();
       if (window.location.pathname !== `${ESTOQUISTA_BASE_PATH}/`) {
         window.location.assign(`${ESTOQUISTA_BASE_PATH}/?expired=1`);
@@ -142,9 +152,14 @@ export const api = {
     });
     invalidateItemsCache();
     localStorage.setItem(TOKEN_KEY, result.access_token);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     return result;
   },
-  logout() { localStorage.removeItem(TOKEN_KEY); invalidateItemsCache(); },
+  logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    invalidateItemsCache();
+  },
   authenticated() { return Boolean(localStorage.getItem(TOKEN_KEY)); },
   products: async () => (await request('/produtos/')).map(product),
   productsForCurrentUnit: () => loadProductsForCurrentUnit(),

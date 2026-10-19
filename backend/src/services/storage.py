@@ -25,7 +25,7 @@ _client = boto3.client(
         s3={"addressing_style": "path"},
         connect_timeout=3,
         read_timeout=15,
-        retries={"max_attempts": 2},
+        retries={"max_attempts": 4, "mode": "standard"},
     ),
 )
 
@@ -47,14 +47,9 @@ def _detectar_tipo(dados: bytes) -> str | None:
             tipo = FORMATOS_IMAGEM.get(imagem.format)
             if tipo is None:
                 return None
-            largura, altura = imagem.size
-            if not largura or not altura or abs((largura / altura) - 1) > 0.01:
-                raise ErroImagemInvalida("A imagem deve ser quadrada, na proporção 1:1.")
             imagem.verify()
             return tipo
-    except ErroImagemInvalida:
-        raise
-    except (UnidentifiedImageError, OSError):
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError, Image.DecompressionBombError):
         return None
 
 

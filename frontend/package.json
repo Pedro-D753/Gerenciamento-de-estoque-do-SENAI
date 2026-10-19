@@ -3,11 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "Estoquista"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "concurrently --kill-others-on-fail --names master,estoquista --prefix-colors blue,green \"npm run dev:master\" \"npm run dev:estoquista\"",
+    "build": "npm run build:master && npm run build:estoquista",
+    "lint": "npm run lint:master && npm run lint:estoquista",
+    "preview": "vite preview",
+    "start": "npm run dev",
+    "dev:master": "npm --prefix . run vite:master",
+    "dev:estoquista": "npm --prefix Estoquista run dev",
+    "vite:master": "vite --host 0.0.0.0 --port 5173",
+    "build:master": "vite build",
+    "build:estoquista": "npm --prefix Estoquista run build",
+    "lint:master": "eslint .",
+    "lint:estoquista": "npm --prefix Estoquista run lint"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -31,6 +42,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.6",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",

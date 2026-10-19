@@ -7,6 +7,20 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+function loginUrl() {
+  if (window.location.port === '5174') {
+    return `${window.location.protocol}//${window.location.hostname}:5173/login`;
+  }
+  return '/login';
+}
+
+function masterUrl() {
+  if (window.location.port === '5174') {
+    return `${window.location.protocol}//${window.location.hostname}:5173/master/`;
+  }
+  return '/master/';
+}
+
 function validateImageFile(file) {
   if (!file) return Promise.resolve('');
   if (!IMAGE_TYPES.includes(file.type)) {
@@ -24,8 +38,7 @@ function validateImageFile(file) {
         resolve('Não foi possível ler as dimensões da foto.');
         return;
       }
-      const ratio = image.naturalWidth / image.naturalHeight;
-      resolve(Math.abs(ratio - 1) <= 0.01 ? '' : 'A foto deve ser quadrada, na proporção 1:1.');
+      resolve('');
     };
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl);
@@ -35,60 +48,12 @@ function validateImageFile(file) {
   });
 }
 
-function Login({ onLogin }) {
-  const [matricula, setMatricula] = useState('');
-  const [senha, setSenha] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [forgotMessage, setForgotMessage] = useState('');
-  const [forgotError, setForgotError] = useState('');
-  const [forgotLoading, setForgotLoading] = useState(false);
-  async function submit(event) {
-    event.preventDefault(); setError(''); setLoading(true);
-    try { await api.login(matricula, senha); onLogin(); }
-    catch (requestError) { setError(requestError.message || 'Falha no login.'); }
-    finally { setLoading(false); }
-  }
-  async function submitForgotPassword(event) {
-    event.preventDefault();
-    setForgotError('');
-    setForgotMessage('');
-    setForgotLoading(true);
-    try {
-      await api.solicitarRedefinicaoSenha(email.trim());
-      setForgotMessage('Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.');
-      setEmail('');
-    } catch (requestError) {
-      setForgotError(requestError.message || 'Não foi possível enviar o e-mail de redefinição.');
-    } finally {
-      setForgotLoading(false);
-    }
-  }
-  return <main className="login"><form className="card login-card" onSubmit={submit}>
-    <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" />
-    <h1>Login de usuário</h1><p>Entre para gerenciar o estoque.</p>
-    <label>Matrícula<input value={matricula} onChange={e => setMatricula(e.target.value)} required /></label>
-    <label>Senha<input type="password" value={senha} onChange={e => setSenha(e.target.value)} required /></label>
-    {error && <div className="error">{error}</div>}
-    <button type="button" className="forgot-button" onClick={() => { setShowForgotPassword(true); setForgotError(''); setForgotMessage(''); }}>Redefinir senha</button>
-    <button disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
-  </form>{showForgotPassword && <div className="forgot-backdrop"><form className="card forgot-card" onSubmit={submitForgotPassword}>
-    <h2>Redefinir senha</h2><p>Informe o e-mail cadastrado para receber o link de redefinição.</p>
-    <label>E-mail<input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus /></label>
-    {forgotError && <div className="error">{forgotError}</div>}
-    {forgotMessage && <div className="success">{forgotMessage}</div>}
-    <div className="actions"><button type="button" className="secondary" onClick={() => setShowForgotPassword(false)}>Cancelar</button><button type="submit" disabled={forgotLoading}>{forgotLoading ? 'Enviando...' : 'Enviar link'}</button></div>
-  </form></div>}</main>;
-}
-
 function Layout({ page, setPage, logout, unit, children }) {
   const [expanded, setExpanded] = useState(false);
   const activePage = page === 'new-product' ? 'products' : page;
   const linkClass = (key) => `sidebar-link ${activePage === key ? 'active' : ''}`;
   return <div className="app">
-    <header><img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" /><button className="link-button" onClick={logout}>Sair</button><div className="header-accent" /></header>
+    <header><img src="/estoquista/Senai.png" alt="SENAI" /><button className="link-button" onClick={logout}>Sair</button><div className="header-accent" /></header>
     <div className="body">
       <aside className={`sidebar ${expanded ? 'expanded' : 'collapsed'}`}>
         <div className="sidebar-links">
@@ -279,7 +244,7 @@ function EditProduct({ item, onCancel, onSaved }) {
       <label>Código de barras<input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /></label>
       <label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
       <label>Data de validade<input name="dt_validade" type="date" value={form.dt_validade} onChange={change} /></label>
-      <label className="image-upload-field">Imagem do produto<input className="image-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Manter imagem atual'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB · proporção 1:1</small>{imageFile && <UploadPreview file={imageFile} />}</label>
+      <label className="image-upload-field">Imagem do produto<input className="image-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Manter imagem atual'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB</small>{imageFile && <UploadPreview file={imageFile} />}</label>
       <label className="flex-row-label"><input name="is_ativo" type="checkbox" checked={form.is_ativo} onChange={change} /> Item ativo</label>
       {error && <div role="alert" className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
@@ -460,13 +425,17 @@ function NewProduct({ setPage }) {
   }
   async function openScanner() {
     try {
+      setError('');
       const session = await api.createBarcodeSession();
       const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '');
       const link = `${publicAppUrl}${import.meta.env.BASE_URL}scanner?session=${encodeURIComponent(session.session_id)}`;
       setScannerSession(session.session_id);
       setScannerLink(link);
+      if (/\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(publicAppUrl)) {
+        setError('O QR Code foi gerado, mas o celular precisa acessar o computador por um endereço da rede. Defina VITE_PUBLIC_APP_URL com o IP do computador, por exemplo http://192.168.0.10:5174.');
+      }
     } catch (requestError) {
-      setError(requestError.message || 'Não foi possível iniciar a sessão de leitura.');
+      setError(requestError.message || 'Não foi possível gerar o QR Code da câmera.');
     }
   }
   async function copyScannerLink() {
@@ -475,6 +444,8 @@ function NewProduct({ setPage }) {
   async function submit(event) {
     event.preventDefault(); setError(''); setSuccess(''); setSaving(true);
     try {
+      if (!form.codigo_barra.trim()) throw new Error('Informe ou leia o código de barras.');
+      if (!form.categoria_id) throw new Error('Selecione uma categoria.');
       const created = await api.createProductWithStock({
         ...form,
         codigo_barra: Number(form.codigo_barra),
@@ -494,14 +465,13 @@ function NewProduct({ setPage }) {
       event.target.reset();
     } catch (e) { setError(e.message); } finally { setSaving(false); }
   }
-  return <section><span className="eyebrow">Estoquista</span><h1>Novo item</h1><form className="panel form-grid" onSubmit={submit}>{[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}<label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label><label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label><label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label><label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>A sessão expira automaticamente após 5 minutos.</small></div>}</label><label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB · proporção 1:1</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label><label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label><div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>{error && <div className="error">{error}</div>}{success && <div className="success">{success}</div>}</form></section>;
+  return <section><span className="eyebrow">Estoquista</span><h1>Novo item</h1><form className="panel form-grid" onSubmit={submit}>{[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}<label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label><label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label><label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label><label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular. Ele abrirá a câmera:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>O código lido será enviado automaticamente por esta sessão.</small></div>}</label><label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label><label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label><div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>{error && <div className="error">{error}</div>}{success && <div className="success">{success}</div>}</form></section>;
 }
 
 function BarcodeScanner() {
   const videoRef = useRef(null);
   const completedRef = useRef(false);
   const [error, setError] = useState('');
-  const [manualValue, setManualValue] = useState('');
   const sessionId = new URLSearchParams(window.location.search).get('session');
   useEffect(() => {
     let reader;
@@ -510,6 +480,9 @@ function BarcodeScanner() {
       try {
         const videoElement = videoRef.current;
         if (!videoElement) return;
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('A câmera só funciona em uma conexão segura (HTTPS) ou em localhost.');
+        }
         reader = new BrowserMultiFormatReader();
         controls = await reader.decodeFromConstraints(
           { video: { facingMode: { ideal: 'environment' } } },
@@ -520,7 +493,6 @@ function BarcodeScanner() {
             completedRef.current = true;
             try {
               await api.submitBarcode(sessionId, value);
-              setManualValue(value);
               setError('Código enviado para o computador. Você pode fechar esta página.');
               controls?.stop();
             } catch (requestError) {
@@ -539,12 +511,7 @@ function BarcodeScanner() {
       reader?.reset();
     };
   }, [sessionId]);
-  function finishManual() {
-    if (sessionId && manualValue.trim()) api.submitBarcode(sessionId, manualValue.trim())
-      .then(() => setError('Código enviado para o computador. Você pode fechar esta página.'))
-      .catch((requestError) => setError(requestError.message));
-  }
-  return <main className="scanner-page"><div className="scanner-card"><span className="eyebrow">Leitor de código de barras</span><h1>Aponte a câmera para o código</h1>{sessionId ? <><video ref={videoRef} className="scanner-video" muted playsInline /><p className="scanner-help">Permita o acesso à câmera e mantenha o código dentro do quadro.</p></> : <p className="error">Link de sessão inválido.</p>}{error && <p className="error">{error}</p>}<input className="scanner-manual-input" value={manualValue} onChange={(event) => setManualValue(event.target.value)} placeholder="Digite o código manualmente" inputMode="numeric" /><button type="button" onClick={finishManual} disabled={!sessionId}>Enviar código</button></div></main>;
+  return <main className="scanner-page"><div className="scanner-card"><span className="eyebrow">Leitor de código de barras</span><h1>Aponte a câmera para o código</h1>{sessionId ? <><video ref={videoRef} className="scanner-video" autoPlay muted playsInline /><p className="scanner-help">Permita o acesso à câmera. Ao ler o código, ele será enviado automaticamente para o cadastro.</p></> : <p className="error">Link de sessão inválido.</p>}{error && <p className="error">{error}</p>}</div></main>;
 }
 
 function AuthenticatedApp() {
@@ -555,6 +522,10 @@ function AuthenticatedApp() {
     if (!authenticated) return undefined;
     let active = true;
     api.currentUser().then((user) => {
+      if (window.location.pathname === '/login' || window.location.pathname === '/login/') {
+        window.location.assign(user.is_admin ? masterUrl() : '/estoquista/');
+        return;
+      }
       if (active) setUnit(user.unidade);
     }).catch(() => {
       if (active) setUnit(null);
@@ -563,7 +534,10 @@ function AuthenticatedApp() {
     });
     return () => { active = false; };
   }, [authenticated]);
-  if (!authenticated) return <Login onLogin={() => setAuthenticated(true)} />;
+  if (!authenticated) {
+    window.location.assign(loginUrl());
+    return null;
+  }
   if (!userLoaded) return <main className="loading-page">Carregando sua unidade...</main>;
   const content = page === 'dashboard' ? <Dashboard setPage={setPage} /> : page === 'products' ? <Products setPage={setPage} /> : page === 'new-product' ? <NewProduct setPage={setPage} /> : page === 'requests' ? <Requests /> : <Requests history />;
   return <Layout page={page} setPage={setPage} unit={unit} logout={() => { api.logout(); setUnit(null); setUserLoaded(false); setAuthenticated(false); }}>{content}</Layout>;

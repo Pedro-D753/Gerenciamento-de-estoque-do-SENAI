@@ -1,6 +1,22 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,react,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,react,node
 
+.git/
+.gitignore
+.copilot/
+.venv/
+venv/
+env/
+*.sqlite
+*.sqlite3
+*.dump
+tmp/
+temp/
+data/
+minio_data/
+db_postgres_1/
+redis_data/
+
 ### Node ###
 # Logs
 logs

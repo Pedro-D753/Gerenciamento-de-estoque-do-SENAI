@@ -4,8 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: '/master/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'development' ? '/' : '/master/',
   plugins: [
     react(),
     tailwindcss(),
@@ -15,4 +15,4 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-})
+}))

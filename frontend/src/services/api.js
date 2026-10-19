@@ -1,5 +1,6 @@
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const TOKEN_KEY = 'sce_access_token';
+const LEGACY_TOKEN_KEY = 'sce_estoquista_access_token';
 const MASTER_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
 const ITEMS_CACHE_TTL = 60_000;
 let itemsCache = null;
@@ -20,7 +21,7 @@ function invalidateItemsCache() {
 }
 
 function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
 }
 
 async function request(path, options = {}) {
@@ -49,8 +50,9 @@ async function request(path, options = {}) {
       : await response.text();
 
   if (!response.ok) {
-    if (token && (response.status === 401 || response.status === 403)) {
+    if (token && response.status === 401) {
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
       if (window.location.pathname !== `${MASTER_BASE_PATH}/login`) {
         window.location.assign(`${MASTER_BASE_PATH}/login?expired=1`);
       }
@@ -234,12 +236,16 @@ export const api = {
       body: form.toString(),
     });
     invalidateItemsCache();
-    if (data?.access_token) localStorage.setItem(TOKEN_KEY, data.access_token);
+    if (data?.access_token) {
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
+    }
     return data;
   },
 
   logout() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     invalidateItemsCache();
   },
 

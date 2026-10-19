@@ -2,6 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api.js';
 
+function estoquistaUrl(token) {
+  if (window.location.port === '5173') {
+    return `${window.location.protocol}//${window.location.hostname}:5174/estoquista/?access_token=${encodeURIComponent(token)}`;
+  }
+  return '/estoquista/';
+}
+
+function masterHomeUrl() {
+  if (window.location.pathname === '/login') return '/master/';
+  return '/';
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const sessionExpired = new URLSearchParams(window.location.search).get('expired') === '1';
@@ -23,10 +35,10 @@ export default function Login() {
       await api.login(matricula.trim(), senha);
       const user = await api.currentUser();
       if (!user.is_admin) {
-        api.logout();
-        throw new Error('Acesso ao Master permitido somente para administradores.');
+        window.location.assign(estoquistaUrl(localStorage.getItem('sce_access_token')));
+        return;
       }
-      navigate('/', { replace: true });
+      navigate(masterHomeUrl(), { replace: true });
     } catch (requestError) {
       setError(requestError.message || 'Não foi possível realizar o login.');
     } finally {
@@ -52,7 +64,7 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+    <main className="min-h-screen bg-white flex items-center justify-center p-6">
       <form onSubmit={handleSubmit} className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="SENAI" className="h-14 w-auto mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-center text-[#0C3B7C]">Acesso do usuário</h1>

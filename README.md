@@ -39,11 +39,25 @@ Para iniciar o SGE com Docker, configure o arquivo `.env` e siga os passos abaix
 
 O Compose inicia a API, PostgreSQL, Redis, MinIO e as duas interfaces. Acesse:
 
-- Master: http://localhost/master/
-- Estoquista: http://localhost/estoquista/
+- Login único: http://localhost/login
+- Master: http://localhost/master/ (após autenticar como administrador)
+- Estoquista: http://localhost/estoquista/ (após autenticar como estoquista)
 - Documentação da API: http://localhost:8000/docs
 
-O caminho raiz `/` redireciona para `/master/`. As requisições da API continuam disponíveis nas rotas existentes, por exemplo `http://localhost:8000/produtos/`.
+O caminho raiz `/` redireciona para `/login`. O perfil do usuário define automaticamente se ele será enviado para o Master ou para o Estoquista. As requisições da API continuam disponíveis nas rotas existentes, por exemplo `http://localhost:8000/produtos/`.
+
+## Frontend em desenvolvimento
+
+Para iniciar as duas interfaces com um único comando, entre na pasta `frontend` e execute:
+
+```bash
+npm install
+npm run dev
+```
+
+O comando inicia o Master em `http://localhost:5173/master/` e o Estoquista em `http://localhost:5174/estoquista/`. Também estão disponíveis `npm run build` e `npm run lint` para executar as verificações dos dois projetos.
+
+Para ler um código de barras pelo celular, o Estoquista gera um QR Code com uma sessão temporária identificada por hash. Em desenvolvimento, defina `VITE_PUBLIC_APP_URL` com um endereço acessível pelo celular na rede local (por exemplo, `http://192.168.0.10:5174`) antes de iniciar o frontend. O celular abre esse endereço, autoriza a câmera, lê o código e o envia automaticamente para o cadastro no computador.
 
 # Equipe do sistema:
 ### Instrutor Orientador
