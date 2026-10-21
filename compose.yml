@@ -33,7 +33,7 @@ services:
     image: redis:7
     restart: always
     ports:
-      - "0.0.0.0.1:6379:6379"
+      - "0.0.0.0:6379:6379"
     environment:
       DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no arquivo .env}
     command: ["sh", "-c", "redis-server --appendonly yes --requirepass \"$${DB_PASSWORD}\""]
