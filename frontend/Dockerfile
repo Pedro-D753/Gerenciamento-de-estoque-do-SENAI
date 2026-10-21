@@ -2,6 +2,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 COPY frontend/package*.json ./
+COPY frontend/Estoquista/package.json ./Estoquista/package.json
 RUN npm ci
 COPY frontend/ ./
 ARG VITE_API_URL=/
