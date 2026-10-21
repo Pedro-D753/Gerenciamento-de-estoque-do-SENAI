@@ -17,6 +17,16 @@ O SGE(Sistema de Gerenciamento de Estoque) foi desenvolvido para resolve o probl
 
 # Instalação
 
+Para executar as interfaces localmente sem Docker, instale as dependências e inicie os servidores:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Esse comando inicia as interfaces Master e Estoquista. Se preferir executar a partir da raiz do repositório, use `npm run dev`.
+
 Para iniciar o SGE com Docker, configure o arquivo `.env` e siga os passos abaixo:
 
 1. Clone o repositório:

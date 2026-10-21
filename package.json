@@ -1,0 +1,7 @@
+{
+  "name": "gerenciamento-de-estoque-senai",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev"
+  }
+}
