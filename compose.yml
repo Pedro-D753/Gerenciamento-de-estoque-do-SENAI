@@ -3,7 +3,7 @@ services:
     image: postgres:15
     restart: always
     ports:
-      - "127.0.0.1:5432:5432"
+      - "0.0.0.0:5432:5432"
     environment:
       POSTGRES_DB: ${DB_NAME:?Configure DB_NAME no arquivo .env}
       POSTGRES_USER: ${DB_USER:?Configure DB_USER no arquivo .env}
@@ -21,7 +21,7 @@ services:
     image: cgr.dev/chainguard/minio:latest
     restart: always
     ports:
-      - "127.0.0.1:9000:9000"
+      - "0.0.0.0:9000:9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
@@ -33,7 +33,7 @@ services:
     image: redis:7
     restart: always
     ports:
-      - "127.0.0.1:6379:6379"
+      - "0.0.0.0.1:6379:6379"
     environment:
       DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no arquivo .env}
     command: ["sh", "-c", "redis-server --appendonly yes --requirepass \"$${DB_PASSWORD}\""]
