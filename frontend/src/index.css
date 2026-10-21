@@ -1,8 +1,54 @@
 @import "tailwindcss";
 
+:root {
+  font-family: 'Geist Variable', system-ui, sans-serif;
+  color: #2e2d2f;
+  background: #ebeaed;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --sge-brand: #164194;
+  --sge-brand-hover: #0c3b7c;
+  --sge-accent: #e84910;
+  --sge-page: #ebeaed;
+  --sge-surface: #b7b6b9;
+  --sge-control: #cdcdcd;
+  --sge-table: #d6d6d6;
+  --sge-table-header: #d0d5de;
+  --sge-border: #868588;
+  --sge-text: #2e2d2f;
+  --sge-muted: #58575a;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
+  }
+
+  .master-table-wrap {
+    background: #d6d6d6;
+    box-shadow: 0 5px 20px #2e2d2f20;
+  }
+
+  .master-data-table {
+    color: #2e2d2f;
+    font-family: 'Geist Variable', sans-serif;
+  }
+
+  .master-data-table th {
+    border-color: #868588;
+    background: #d0d5de;
+    color: #2e2d2f;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .master-data-table td {
+    border-color: #a9a8ab;
+    background: #d6d6d6;
+  }
+
+  .master-data-table tbody tr:hover td {
+    background: #c7cbd1;
   }
   html {
     font-size: 14px; /* Slightly compact global base scale from standard 16px */
@@ -10,9 +56,9 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #EBEAED;
-    color: #2E2D2F;
+    font-family: 'Geist Variable', system-ui, sans-serif;
+    background-color: var(--sge-page);
+    color: var(--sge-text);
   }
 }
 
@@ -23,9 +69,325 @@
   flex-direction: column;
 }
 
-#root,
-#root * {
+#root {
+  font-family: 'Geist Variable', system-ui, sans-serif;
+  font-weight: 400;
+}
+
+#root button,
+#root input,
+#root select,
+#root textarea {
+  font: inherit;
+}
+
+.area-filter-control {
+  min-height: 42px;
+  border: 1px solid var(--sge-border);
+  border-radius: 12px;
+  background: var(--sge-control);
+  color: var(--sge-text);
+  font-weight: 600;
+}
+
+.area-filter-control:hover {
+  background: #bfbfbf;
+}
+
+.area-filter-menu {
+  border: 1px solid var(--sge-border);
+  border-radius: 16px;
+  background: #d1d5db;
+  box-shadow: 0 12px 28px #2e2d2f30;
+}
+
+.area-filter-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 10px;
+  color: var(--sge-muted);
+  font-weight: 500;
+  text-align: left;
+}
+
+.area-filter-option:hover {
+  background: #b7b6b9;
+  color: var(--sge-text);
+}
+
+.area-filter-option[aria-pressed="true"] {
+  background: #164194;
+  color: #fff;
   font-weight: 700;
+}
+
+.area-filter-clear {
+  color: #a32020;
+}
+
+.app-shell main button:not(.area-filter-control):not(.area-filter-option):not(.area-filter-clear):not(.selection-toggle):not(.icon-button):not(.secondary):not(.danger):not(.tab-inactive):not(.deleted-item-expand) {
+  background: var(--sge-brand);
+  color: #fff;
+}
+
+.app-shell main button:not(.area-filter-control):not(.area-filter-option):not(.area-filter-clear):not(.selection-toggle):not(.icon-button):not(.secondary):not(.danger):not(.tab-inactive):not(.deleted-item-expand):hover {
+  background: var(--sge-brand-hover);
+}
+
+.app-shell main button.secondary,
+.app-shell main button.tab-inactive {
+  background: #868588;
+  color: #fff;
+}
+
+.app-shell main button.danger {
+  background: #b42318;
+  color: #fff;
+}
+
+.app-shell main button.area-filter-control {
+  background: var(--sge-control);
+  color: var(--sge-text);
+}
+
+.app-shell main button.area-filter-option {
+  background: transparent;
+  color: var(--sge-muted);
+}
+
+.app-shell main button.area-filter-option:hover {
+  background: var(--sge-surface);
+  color: var(--sge-text);
+}
+
+.app-shell main button.area-filter-option[aria-pressed="true"] {
+  background: var(--sge-brand);
+  color: #fff;
+}
+
+.app-shell main button.area-filter-clear {
+  background: transparent;
+  color: #a32020;
+}
+
+.app-shell main button.selection-toggle {
+  min-height: 20px;
+  width: 20px;
+  padding: 0;
+  border: 1px solid var(--sge-border);
+  border-radius: 5px;
+  background: var(--sge-page);
+  color: #fff;
+}
+
+.app-shell main button.selection-toggle[aria-pressed="true"] {
+  border-color: var(--sge-brand);
+  background: var(--sge-brand);
+}
+
+.app-shell main button.icon-button {
+  background: transparent;
+  color: var(--sge-muted);
+}
+
+.app-shell .area-filter-select {
+  display: flex;
+  width: min(100%, 340px);
+  flex-direction: column;
+  gap: 7px;
+  color: var(--sge-text);
+  font-weight: 600;
+}
+
+.app-shell .area-filter-select select {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  background: var(--sge-control);
+  color: var(--sge-text);
+}
+
+.app-shell button.tab-active {
+  background: var(--sge-brand);
+  color: #fff;
+}
+
+.app-shell button {
+  border-radius: 10px;
+  font-family: 'Geist Variable', system-ui, sans-serif;
+}
+
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  border-color: var(--sge-border);
+  border-radius: 10px;
+  font-family: 'Geist Variable', system-ui, sans-serif;
+}
+
+.app-shell table {
+  border-collapse: collapse;
+  color: var(--sge-text);
+  font-family: 'Geist Variable', system-ui, sans-serif;
+}
+
+.app-shell table th {
+  border-color: var(--sge-border);
+  background: var(--sge-table-header);
+  color: var(--sge-text);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.app-shell table td {
+  border-color: #a9a8ab;
+  background: var(--sge-table);
+  color: var(--sge-text);
+}
+
+.app-shell table tbody tr:hover td {
+  background: #c7cbd1;
+}
+
+.master-grid-table {
+  border-color: var(--sge-border);
+  background: var(--sge-table);
+  box-shadow: 0 5px 20px #2e2d2f20;
+}
+
+.master-grid-table-header {
+  border-color: var(--sge-border);
+  background: var(--sge-table-header);
+  color: var(--sge-text);
+  font-weight: 700;
+}
+
+.master-grid-table-row {
+  border-color: #a9a8ab;
+  background: var(--sge-table);
+  color: var(--sge-text);
+}
+
+.master-grid-table-row:hover {
+  background: #c7cbd1;
+}
+
+.master-grid-table-row.is-selected {
+  background: #dce6f5;
+  color: var(--sge-text);
+}
+
+.master-grid-table-row.is-inactive,
+.master-grid-table-row.is-inactive.is-selected {
+  background: #b7b6b9;
+  color: #58575a;
+  cursor: not-allowed;
+}
+
+.master-grid-table-row.is-inactive:hover {
+  background: #a9a8ab;
+}
+
+.app-shell table.deleted-items-table {
+  min-width: 720px;
+  table-layout: fixed;
+}
+
+.deleted-items-table th:nth-child(1),
+.deleted-items-table td:nth-child(1) {
+  width: 56px;
+}
+
+.deleted-items-table th:nth-child(2),
+.deleted-items-table td:nth-child(2) {
+  width: 110px;
+}
+
+.deleted-items-table th:nth-child(3),
+.deleted-items-table td:nth-child(3) {
+  width: 24%;
+}
+
+.deleted-items-table th:nth-child(4),
+.deleted-items-table td:nth-child(4) {
+  width: 130px;
+}
+
+.deleted-items-table th:nth-child(5),
+.deleted-items-table td:nth-child(5) {
+  width: 155px;
+}
+
+.deleted-item-expand {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.app-shell main button.deleted-item-expand,
+.app-shell main button.deleted-item-expand:hover {
+  background: transparent;
+  color: inherit;
+}
+
+.deleted-item-preview {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleted-item-details-row td {
+  background: #c7cbd1 !important;
+}
+
+.deleted-item-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.deleted-item-details > div {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--sge-border);
+  border-radius: 10px;
+  background: var(--sge-page);
+}
+
+.deleted-item-details strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.deleted-item-details p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .deleted-item-details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.app-shell section,
+.app-shell main {
+  min-width: 0;
 }
 
 .solicitacao-page .bg-\[\#1F2937\] {

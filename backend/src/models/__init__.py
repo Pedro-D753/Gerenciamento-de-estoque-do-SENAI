@@ -18,21 +18,35 @@ __all__ = ["UserModel", "UnidadeModel", "SolicitacaoEstadoEnum", "SolicitacaoTip
            "RegistroModel", "ProdutoModel", "FornecedorModel", "EstoqueModel", "EstoqueSolicitacaoModel",
             "ContratoModel", "CategoriaModel", "LogModel"]
 
-Base.metadata.create_all(bind=engine)
+def initialize_database():
+    Base.metadata.create_all(bind=engine)
 
-# Atualiza bancos já existentes, pois create_all não altera colunas criadas anteriormente.
-with engine.begin() as connection:
-    connection.execute(text("ALTER TABLE produto ALTER COLUMN img_hash DROP NOT NULL"))
-    connection.execute(
-        text(
-            "ALTER TABLE \"log\" "
-            "ALTER COLUMN matricula_quem_fez TYPE VARCHAR(255) "
-            "USING matricula_quem_fez::VARCHAR"
+    # create_all does not alter columns in existing databases.
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE produto ALTER COLUMN img_hash DROP NOT NULL"))
+        connection.execute(
+            text(
+                "ALTER TABLE \"log\" "
+                "ALTER COLUMN matricula_quem_fez TYPE VARCHAR(255) "
+                "USING matricula_quem_fez::VARCHAR"
+            )
         )
-    )
-    connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS solicitante VARCHAR(255)"))
-    connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_solicitacao TIMESTAMP"))
-    connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_retirada TIMESTAMP"))
-    connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS obs_pad TEXT"))
-    connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Separada'"))
-    connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Retirada'"))
+        connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS solicitante VARCHAR(255)"))
+        connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_solicitacao TIMESTAMP"))
+        connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS dt_retirada TIMESTAMP"))
+        connection.execute(text("ALTER TABLE solicitacao ADD COLUMN IF NOT EXISTS obs_pad TEXT"))
+        connection.execute(
+            text("ALTER TABLE estoque ADD COLUMN IF NOT EXISTS is_excluido BOOLEAN NOT NULL DEFAULT FALSE")
+        )
+        connection.execute(text("ALTER TABLE estoque ADD COLUMN IF NOT EXISTS motivo_exclusao TEXT"))
+        connection.execute(
+            text("ALTER TABLE estoque ADD COLUMN IF NOT EXISTS dt_exclusao TIMESTAMP WITH TIME ZONE")
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE estoque ADD COLUMN IF NOT EXISTS "
+                "dt_entrada TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            )
+        )
+        connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Separada'"))
+        connection.execute(text("ALTER TYPE solicitacaotipoenum ADD VALUE IF NOT EXISTS 'Retirada'"))

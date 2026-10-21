@@ -1,0 +1,553 @@
+.product-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.product-filters .search {
+  flex: 1 1 280px;
+  margin-bottom: 20px;
+}
+
+.product-filters label {
+  display: flex;
+  flex: 0 1 320px;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 20px;
+  color: #2e2d2f;
+  font-weight: 700;
+}
+
+.product-filters .area-filter-select {
+  flex: 0 1 320px;
+  margin-bottom: 20px;
+}
+
+.product-filters > select {
+  min-height: 42px;
+  flex: 0 1 200px;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  border: 1px solid #868588;
+  border-radius: 12px;
+  background: #cdcdcd;
+  color: #2e2d2f;
+  font: inherit;
+  font-weight: 600;
+}
+
+.request > div:first-child {
+  min-width: 0;
+}
+
+.request > div:first-child > * {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.list-row > span,
+.list-row > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stats .dashboard-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  border: 0;
+  background: #b7b6b9;
+  color: #2e2d2f;
+  text-align: left;
+  box-shadow: 0 5px 20px #2e2d2f20;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.stats .dashboard-stat-card:hover {
+  background: #c7cbd1;
+  transform: translateY(-2px);
+}
+
+.stats .dashboard-stat-card:focus-visible {
+  outline: 3px solid #164194;
+  outline-offset: 3px;
+}
+
+.stats .dashboard-stat-card b {
+  color: #164194;
+  font-size: 32px;
+}
+
+.stats .dashboard-stat-card span {
+  color: #58575a;
+  font-weight: 400;
+}
+
+.stockist-history-page {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  margin: -32px;
+}
+
+.stockist-history-tabbar {
+  display: flex;
+  min-height: 44px;
+  align-items: flex-end;
+  padding: 0 20px;
+  border-bottom: 1px solid #b7b6b9;
+}
+
+.stockist-history-tab {
+  min-width: 120px;
+  padding: 8px 24px;
+  border: 1px solid #868588;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: #cbd0d8;
+  color: #2e2d2f;
+  font-weight: 700;
+  text-align: center;
+}
+
+.stockist-history-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+  margin: 22px 20px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #b7b6b9;
+  box-shadow: 0 5px 20px #2e2d2f20;
+}
+
+.stockist-history-toolbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stockist-history-toolbar select,
+.stockist-history-toolbar input {
+  min-height: 40px;
+  border: 1px solid #868588;
+  border-radius: 10px;
+  background: #cdcdcd;
+  color: #2e2d2f;
+  font: inherit;
+}
+
+.stockist-history-toolbar select {
+  max-width: 100%;
+  padding: 8px 12px;
+}
+
+.stockist-history-toolbar input {
+  width: min(100%, 260px);
+  padding: 8px 12px;
+}
+
+.stockist-history-search-icon {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #164194;
+  color: #fff;
+}
+
+.stockist-history-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #868588;
+  border-radius: 10px;
+  background: #d6d6d6;
+  box-shadow: 0 5px 20px #2e2d2f20;
+}
+
+.stockist-history-table {
+  min-width: 850px;
+  color: #2e2d2f;
+}
+
+.stockist-history-header,
+.stockist-history-row {
+  display: grid;
+  grid-template-columns: 0.6fr 1.25fr 2fr 1.5fr 1fr 1.5fr 0.5fr;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.stockist-history-header {
+  min-height: 42px;
+  border-bottom: 1px solid #868588;
+  background: #d0d5de;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.stockist-history-entry {
+  border-bottom: 1px solid #a9a8ab;
+}
+
+.stockist-history-entry:last-child {
+  border-bottom: 0;
+}
+
+.stockist-history-row {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 0;
+  background: #d6d6d6;
+  color: #2e2d2f;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.stockist-history-row:hover,
+.stockist-history-row.is-expanded {
+  background: #c7cbd1;
+}
+
+.stockist-history-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stockist-history-id {
+  font-weight: 600;
+}
+
+.stockist-history-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.stockist-history-chevron {
+  width: 18px;
+  height: 18px;
+  justify-self: center;
+  color: #868588;
+  transition: transform 0.2s ease;
+}
+
+.stockist-history-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.stockist-history-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid #868588;
+  background: #d1d5db;
+}
+
+.stockist-history-details > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid #a9a8ab;
+  border-radius: 10px;
+  background: #e5e7eb;
+}
+
+.stockist-history-details strong {
+  color: #58575a;
+  font-size: 0.8rem;
+}
+
+.stockist-history-details span {
+  overflow-wrap: anywhere;
+}
+
+.stockist-history-details .stockist-history-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.stockist-history-status {
+  font-weight: 700;
+}
+
+.stockist-history-status.Concluida,
+.stockist-history-status.Retirada {
+  color: #15803d;
+}
+
+.stockist-history-status.Cancelada {
+  color: #b42318;
+}
+
+.stockist-history-empty {
+  padding: 24px;
+  color: #58575a;
+  text-align: center;
+}
+
+.product-filters select {
+  min-height: 46px;
+  padding: 11px;
+  border: 1px solid #868588;
+  border-radius: 8px;
+  background: #ebeaed;
+  color: #2e2d2f;
+  font: inherit;
+}
+
+.stockist-products-table-wrap {
+  overflow: hidden;
+  border: 1px solid #868588;
+  border-radius: 12px;
+  background: #d6d6d6;
+  box-shadow: 0 5px 20px #2e2d2f20;
+}
+
+.stockist-products-table {
+  min-width: 850px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: #2e2d2f;
+  font-family: 'Geist Variable', system-ui, sans-serif;
+}
+
+.stockist-products-table th:nth-child(1),
+.stockist-products-table td:nth-child(1) {
+  width: 70px;
+}
+
+.stockist-products-table th:nth-child(2),
+.stockist-products-table td:nth-child(2) {
+  width: 55px;
+}
+
+.stockist-products-table th:nth-child(3),
+.stockist-products-table td:nth-child(3) {
+  width: 110px;
+}
+
+.stockist-products-table th:nth-child(4),
+.stockist-products-table td:nth-child(4) {
+  width: 25%;
+}
+
+.stockist-products-table th:nth-child(5),
+.stockist-products-table td:nth-child(5),
+.stockist-products-table th:nth-child(6),
+.stockist-products-table td:nth-child(6) {
+  width: 110px;
+}
+
+.stockist-products-table th:nth-child(7),
+.stockist-products-table td:nth-child(7) {
+  width: 130px;
+}
+
+.stockist-products-table th:nth-child(8),
+.stockist-products-table td:nth-child(8) {
+  width: 150px;
+}
+
+.stockist-products-table th {
+  position: sticky;
+  top: 0;
+  border-color: #868588;
+  background: #d0d5de;
+  color: #2e2d2f;
+  padding: 11px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.stockist-products-table td {
+  border-color: #a9a8ab;
+  background: #d6d6d6;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.stockist-products-table tbody tr:hover td {
+  background: #c7cbd1;
+}
+
+.stockist-products-table tbody tr.product-inactive-row td {
+  background: #b7b6b9;
+  color: #58575a;
+}
+
+.stockist-products-table tbody tr.product-inactive-row:hover td {
+  background: #a9a8ab;
+}
+
+.stockist-products-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.stockist-products-table .product-name-cell {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stockist-products-table .product-name-expand {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stockist-products-table .product-name-expand:hover {
+  background: transparent;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.stockist-products-table .product-stock-duration-row td {
+  padding: 12px 16px;
+  background: #c7cbd1;
+  text-align: left;
+}
+
+.product-stock-duration {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+}
+
+.product-stock-duration strong {
+  color: #2e2d2f;
+}
+
+.product-stock-duration small {
+  color: #58575a;
+}
+
+.stockist-products-table .actions {
+  flex-wrap: nowrap;
+}
+
+.new-product-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  padding: 24px 28px;
+  border-left: 6px solid #e84910;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 20px #1d355710;
+}
+
+.new-product-heading h1 {
+  margin: 5px 0 8px;
+}
+
+.new-product-heading p,
+.new-product-form-heading p {
+  margin: 0;
+  color: #617087;
+}
+
+.new-product-heading .secondary {
+  flex: 0 0 auto;
+}
+
+.new-product-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 0;
+  padding: 28px;
+  border-top: 4px solid #164194;
+}
+
+.new-product-form-heading {
+  grid-column: 1 / -1;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #d8dce3;
+}
+
+.new-product-form-heading h2 {
+  margin: 0 0 6px;
+  color: #164194;
+  font-size: 20px;
+}
+
+.new-product-form > label:nth-of-type(2) {
+  grid-column: 1 / -1;
+}
+
+.new-product-form .image-upload-field {
+  min-width: 0;
+}
+
+.new-product-form .form-actions {
+  padding-top: 8px;
+  border-top: 1px solid #d8dce3;
+}
+
+@media (max-width: 760px) {
+  .stockist-history-page {
+    margin: -24px -14px;
+  }
+
+  .stockist-history-tabbar {
+    padding: 0 14px;
+  }
+
+  .stockist-history-panel {
+    margin: 16px 12px;
+    padding: 12px;
+  }
+
+  .stockist-history-toolbar input {
+    flex: 1 1 180px;
+  }
+
+  .new-product-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .new-product-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+
+  .new-product-form-heading,
+  .new-product-form > label:nth-of-type(2),
+  .new-product-form .form-actions {
+    grid-column: auto;
+  }
+}

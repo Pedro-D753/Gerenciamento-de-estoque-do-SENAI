@@ -33,6 +33,7 @@ def _serializar_solicitacao(solicitacao, estoque_solicitado, estoque=None, produ
             "produto_id": estoque.produto_id if estoque else None,
             "produto_nome": produto.nome if produto else None,
             "produto_codigo": produto.codigo_barra if produto else None,
+            "categoria_id": produto.categoria_id if produto else None,
             "unidade_nome": unidade.nome if unidade else None,
             "estoque_qtd": estoque.qtd if estoque else None,
         },
@@ -78,28 +79,30 @@ def criar_solicitacoes(session, solicitacoes):
 #endregion
 
 #region FUNCAO LER SOLICITACAO
-def ler_solicitacao(session):
-    resultados = (
+def _solicitacoes_query(session, user_id):
+    user = session.query(UserModel).filter(UserModel.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    query = (
         session.query(SolicitacaoModel, EstoqueSolicitacaoModel, EstoqueModel, ProdutoModel, UnidadeModel)
         .join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id)
         .join(EstoqueModel, EstoqueModel.id == EstoqueSolicitacaoModel.estoque_id)
         .join(ProdutoModel, ProdutoModel.id == EstoqueModel.produto_id)
         .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
-        .all()
     )
+    if not user.is_admin:
+        query = query.filter(EstoqueModel.unidade_id == user.unidade_id)
+    return query
+
+
+def ler_solicitacao(session, user_id):
+    resultados = _solicitacoes_query(session, user_id).all()
     return [_serializar_solicitacao(solicitacao, estoque_solicitado, estoque, produto, unidade)
             for solicitacao, estoque_solicitado, estoque, produto, unidade in resultados]
 
-def ler_solicitacao_id(session, id):
-    resultado = (
-        session.query(SolicitacaoModel, EstoqueSolicitacaoModel, EstoqueModel, ProdutoModel, UnidadeModel)
-        .join(EstoqueSolicitacaoModel, SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id)
-        .join(EstoqueModel, EstoqueModel.id == EstoqueSolicitacaoModel.estoque_id)
-        .join(ProdutoModel, ProdutoModel.id == EstoqueModel.produto_id)
-        .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
-        .filter(SolicitacaoModel.id == id)
-        .first()
-    )
+def ler_solicitacao_id(session, id, user_id):
+    resultado = _solicitacoes_query(session, user_id).filter(SolicitacaoModel.id == id).first()
 
     if not resultado:
         return None

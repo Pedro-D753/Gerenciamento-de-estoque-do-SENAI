@@ -4,7 +4,6 @@ import { api } from './services/api.js';
 import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';
 import Estatistica from './pages/Estatistica.jsx';
-import Solicitacao from './pages/Solicitacao.jsx';
 import HistoricoSolicitacao from './pages/Historico.jsx';
 import ItemDescricao from './pages/ItemDescricao.jsx';
 import Manual from './pages/Manual.jsx';
@@ -67,13 +66,13 @@ function App() {
         <Route path="/redefinir-senha/:jwt" element={<RedefinirSenha />} />
         <Route element={<RequireAuth />}>
           <Route element={<RequireAdmin />}>
+            {!mountedAtMaster && <Route path="/" element={<Home />} />}
             <Route path={protectedPath} element={<Home />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/manualdousuario" element={<Manual />} />
             <Route path="/estatistica" element={<Estatistica />} />
             <Route path="/Estatistica" element={<Estatistica />} />
             <Route path="/solicitacao" element={<HistoricoSolicitacao />} />
-            <Route path="/solicitacao/nova" element={<Solicitacao />} />
             <Route path="/historico_solicitacao" element={<HistoricoSolicitacao />} />
             <Route path="/historico" element={<HistoricoSolicitacao />} />
             <Route path="/solicitacao/historico" element={<HistoricoSolicitacao />} />

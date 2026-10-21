@@ -1,4 +1,6 @@
 from ..models.estoque import EstoqueModel
+from ..models.produto import ProdutoModel
+from ..models.unidade import UnidadeModel
 from .erros import ErroEstoqueExiste, ErroEstoqueNaoEncontrado, ErroInesperado
 
 #region FUNCAO CRIAR ESTOQUE
@@ -33,10 +35,39 @@ def criar_estoque(session, dados):
 
 #region FUNCAO LER ESTOQUE
 def ler_estoque(session):
-    return session.query(EstoqueModel).all()
+    return session.query(EstoqueModel).filter(EstoqueModel.is_excluido.is_(False)).all()
 
 def ler_estoque_id(session, id):
-    return session.query(EstoqueModel).filter(EstoqueModel.id == id).first()
+    return (
+        session.query(EstoqueModel)
+        .filter(EstoqueModel.id == id, EstoqueModel.is_excluido.is_(False))
+        .first()
+    )
+
+
+def ler_estoques_excluidos(session):
+    registros = (
+        session.query(EstoqueModel, ProdutoModel, UnidadeModel)
+        .join(ProdutoModel, ProdutoModel.id == EstoqueModel.produto_id)
+        .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
+        .filter(EstoqueModel.is_excluido.is_(True))
+        .order_by(EstoqueModel.dt_exclusao.desc().nullslast(), EstoqueModel.id.desc())
+        .all()
+    )
+    return [
+        {
+            "id": estoque.id,
+            "produto_id": produto.id,
+            "produto_nome": produto.nome,
+            "produto_codigo": produto.codigo_barra,
+            "categoria_id": produto.categoria_id,
+            "unidade_id": unidade.id,
+            "unidade_nome": unidade.nome,
+            "motivo_exclusao": estoque.motivo_exclusao,
+            "dt_exclusao": estoque.dt_exclusao,
+        }
+        for estoque, produto, unidade in registros
+    ]
 #endregion
 
 #region FUNCAO ATUALIZAR ESTOQUE

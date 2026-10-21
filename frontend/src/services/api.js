@@ -86,6 +86,7 @@ function normalizeProduct(product, stockOverride, unitName, categoryName) {
     unidade: unitName || unit.nome || stock.localidade || product.localidade || '',
     location: unitName || unit.nome || stock.localidade || product.localidade || '',
     estoque_id: stock.id,
+    is_ativo: stock.is_ativo !== false,
   };
 }
 
@@ -155,13 +156,15 @@ async function loadItems(refresh = false) {
         qtd: 0,
         qtd_minima: 0,
         localidade: null,
+        is_ativo: true,
       };
       current.qtd += Number(stock.qtd || 0);
       current.qtd_minima += Number(stock.qtd_minima || 0);
+      current.is_ativo = current.is_ativo && stock.is_ativo !== false;
       if (!current.localidade) current.localidade = stock.localidade;
       stocksByProduct.set(stock.produto_id, current);
     });
-    const items = await Promise.all(products.map((product) => {
+    const items = await Promise.all(products.filter((product) => stocksByProduct.has(product.id)).map((product) => {
       const stock = stocksByProduct.get(product.id);
       const unitName = stock ? unitNames.get(Number(stock.unidade_id)) : undefined;
       return normalizeProductWithImage(product, stock, unitName, categoryNames.get(Number(product.categoria_id)));
@@ -299,6 +302,7 @@ export const api = {
   removerContrato: (id) => remove('contratos', id),
 
   getEstoques: () => list('estoques'),
+  getItensExcluidos: () => request('/estoques/excluidos'),
   criarEstoque: async (data) => { const result = await create('estoques', data); invalidateItemsCache(); return result; },
   getEstoque: (id) => getById('estoques', id),
   atualizarEstoque: async (id, data) => { const result = await update('estoques', id, data); invalidateItemsCache(); return result; },

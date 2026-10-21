@@ -1,8 +1,11 @@
 from ..models.produto import ProdutoModel
 from ..models.estoque import EstoqueModel
+from ..models.estoque_solicitacao import EstoqueSolicitacaoModel
+from ..models.solicitacao import SolicitacaoModel, SolicitacaoTipoEnum
 from ..models.user import UserModel
 from .erros import ErroProdutoExiste, ErroProdutoNaoEncontrado, ErroInesperado
 from fastapi import HTTPException
+from datetime import datetime, timezone
 
 #region FUNCAO CRIAR PRODUTO
 def criar_produto(session, dados):
@@ -54,6 +57,7 @@ def atualizar_produto_estoquista(session, id, id_usuario, dados):
         .filter(
             EstoqueModel.produto_id == id,
             UserModel.id == id_usuario,
+            EstoqueModel.is_excluido.is_(False),
         )
         .with_for_update()
         .first()
@@ -150,3 +154,58 @@ def excluir_produto(session, id):
     except Exception as e:
         raise ErroInesperado(e, session)
 #endregion
+
+
+def excluir_produto_estoquista(session, id, id_usuario, motivo_exclusao):
+    try:
+        usuario = session.query(UserModel).filter(UserModel.id == id_usuario).first()
+        if usuario is None:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+        estoque = (
+            session.query(EstoqueModel)
+            .filter(
+                EstoqueModel.produto_id == id,
+                EstoqueModel.unidade_id == usuario.unidade_id,
+                EstoqueModel.is_excluido.is_(False),
+            )
+            .with_for_update()
+            .first()
+        )
+        if estoque is None:
+            raise HTTPException(status_code=404, detail="Item não encontrado nesta unidade.")
+
+        solicitacao_em_aberto = (
+            session.query(EstoqueSolicitacaoModel.id)
+            .join(
+                SolicitacaoModel,
+                SolicitacaoModel.id == EstoqueSolicitacaoModel.solicitacao_id,
+            )
+            .filter(EstoqueSolicitacaoModel.estoque_id == estoque.id)
+            .filter(
+                SolicitacaoModel.tipo.in_(
+                    [SolicitacaoTipoEnum.EmAndamento, SolicitacaoTipoEnum.Separada]
+                )
+            )
+            .first()
+        )
+        if solicitacao_em_aberto:
+            raise HTTPException(
+                status_code=409,
+                detail="Não é possível excluir este item enquanto houver uma solicitação em andamento ou aguardando retirada.",
+            )
+
+        motivo_exclusao = motivo_exclusao.strip()
+        if not motivo_exclusao:
+            raise HTTPException(status_code=422, detail="Informe o motivo da exclusão.")
+
+        estoque.is_excluido = True
+        estoque.motivo_exclusao = motivo_exclusao
+        estoque.dt_exclusao = datetime.now(timezone.utc)
+        session.commit()
+        return {"mensagem": "Item excluído do estoque desta unidade com sucesso."}
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        raise ErroInesperado(e, session)

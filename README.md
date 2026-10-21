@@ -31,7 +31,7 @@ Para iniciar o SGE com Docker, configure o arquivo `.env` e siga os passos abaix
     ```bash
     cp .env.example .env
     ```
-   No `.env`, use `DB_HOST=localhost`, `REDIS_HOST=localhost` e `MINIO_ENDPOINT=http://127.0.0.1:9000` para desenvolvimento fora do Docker. Para Docker, o Compose configura os hosts dos serviços e monta o link de redefinição como `${PUBLIC_BASE_URL}/master/redefinir-senha`; defina `PUBLIC_BASE_URL` sem barra final se usar outro domínio.
+   No `.env`, use `DB_HOST=localhost`, `REDIS_HOST=localhost` e `MINIO_ENDPOINT=http://127.0.0.1:9000` para desenvolvimento fora do Docker. Para executar o backend localmente usando os serviços de banco do Compose, inicie as dependências com `docker compose up -d db redis minio`; as portas necessárias ficam acessíveis apenas no próprio computador. Para executar todo o sistema em containers, o Compose configura os hosts internos dos serviços e monta o link de redefinição como `${PUBLIC_BASE_URL}/master/redefinir-senha`; defina `PUBLIC_BASE_URL` sem barra final se usar outro domínio.
 4. Inicie os serviços:
     ```bash 
     docker compose up --build
@@ -43,6 +43,8 @@ O Compose inicia a API, PostgreSQL, Redis, MinIO e as duas interfaces. Acesse:
 - Master: http://localhost/master/ (após autenticar como administrador)
 - Estoquista: http://localhost/estoquista/ (após autenticar como estoquista)
 - Documentação da API: http://localhost:8000/docs
+
+O backend cria e atualiza o schema do banco ao iniciar. Se executá-lo fora do Docker, inicie o PostgreSQL antes e configure `DB_HOST=localhost` no `.env`; sem um servidor PostgreSQL disponível em `DB_HOST:5432`, a inicialização da API falhará.
 
 O caminho raiz `/` redireciona para `/login`. O perfil do usuário define automaticamente se ele será enviado para o Master ou para o Estoquista. As requisições da API continuam disponíveis nas rotas existentes, por exemplo `http://localhost:8000/produtos/`.
 

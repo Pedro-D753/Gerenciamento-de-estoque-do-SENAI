@@ -118,11 +118,11 @@ function product(item, selectedStock) {
     nome: item.nome || 'Sem nome',
     codigo: String(item.codigo_barra ?? ''),
     qtd: stock.qtd ?? item.qtd ?? 0,
-    reserva: stock.qtd_minima ?? item.qtd_minima ?? stock.qtd_reservada ?? item.qtd_reservada ?? 0,
     qtd_minima: Number(stock.qtd_minima ?? item.qtd_minima ?? stock.qtd_reservada ?? item.qtd_reservada ?? 0),
     unidade: unit.nome || stock.localidade || item.localidade || 'Não informado',
     estoque_id: stock.id,
     dt_validade: stock.dt_validade ?? item.dt_validade ?? '',
+    dt_entrada: stock.dt_entrada ?? '',
     is_ativo: stock.is_ativo ?? item.is_ativo ?? true,
   };
 }
@@ -135,6 +135,7 @@ function normalizeRequest(entry) {
     estoque_id: estoqueSolicitado.estoque_id ?? solicitacao.estoque_id,
     produto_nome: estoqueSolicitado.produto_nome ?? solicitacao.produto_nome,
     produto_codigo: estoqueSolicitado.produto_codigo ?? solicitacao.produto_codigo,
+    categoria_id: estoqueSolicitado.categoria_id ?? solicitacao.categoria_id,
     unidade_nome: estoqueSolicitado.unidade_nome ?? solicitacao.unidade_nome,
     estoque_qtd: estoqueSolicitado.estoque_qtd,
     solicitacao,
@@ -174,7 +175,7 @@ export const api = {
   uploadProductImage: async (id, file) => { const result = await upload(`/produtos/${id}/imagem`, file); invalidateItemsCache(); return result; },
   productImage: imageBlob,
   updateProduct: async (id, data) => { const result = await request(`/produtos/${id}`, { method: 'PATCH', body: data }); invalidateItemsCache(); return result; },
-  deleteProduct: async (id) => { const result = await request(`/produtos/${id}`, { method: 'DELETE' }); invalidateItemsCache(); return result; },
+  deleteProduct: async (id, data) => { const result = await request(`/produtos/${id}/estoquista`, { method: 'DELETE', body: data }); invalidateItemsCache(); return result; },
   stocks: () => request('/estoques/'),
   requests: async () => (await request('/solicitacaos/')).map(normalizeRequest),
   updateRequest: async (id, data) => {

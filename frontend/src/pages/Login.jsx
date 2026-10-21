@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api.js';
 
 function estoquistaUrl(token) {
@@ -15,7 +14,6 @@ function masterHomeUrl() {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const sessionExpired = new URLSearchParams(window.location.search).get('expired') === '1';
   const [matricula, setMatricula] = useState('');
   const [senha, setSenha] = useState('');
@@ -38,7 +36,7 @@ export default function Login() {
         window.location.assign(estoquistaUrl(localStorage.getItem('sce_access_token')));
         return;
       }
-      navigate(masterHomeUrl(), { replace: true });
+      window.location.assign(masterHomeUrl());
     } catch (requestError) {
       setError(requestError.message || 'Não foi possível realizar o login.');
     } finally {

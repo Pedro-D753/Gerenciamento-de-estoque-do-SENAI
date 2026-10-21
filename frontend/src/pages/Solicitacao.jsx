@@ -89,6 +89,7 @@ export default function Solicitacao() {
   const [query, setQuery] = useState('');
   const [areaTecnica, setAreaTecnica] = useState('');
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,29 +122,6 @@ export default function Solicitacao() {
     return year && month && day ? `${year}-${month}-${day}T00:00:00` : null;
   };
 
-  const normalizarTexto = (str) =>
-    str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "") : "";
-
-  const opcoes = [
-    { id: 'producao_alimenticia', label: 'Produção Alimentícia' },
-    { id: 'eletronica_e_automacao', label: 'Eletrônica e Automação' },
-    { id: 'manutencao_e_operacao', label: 'Manutenção e Operação' },
-    { id: 'construcao_de_obras', label: 'Construção de Obras' },
-    { id: 'construcao_de_obras/sistemas_de_energia', label: 'Construção de Obras / Sistemas de Energia' },
-    { id: 'sistemas_de_energia', label: 'Sistemas de Energia' },
-    { id: 'comercial/gerencial/operacoes_financeiras', label: 'Comercial / Gerencial / Operações Financeiras' },
-    { id: 'design', label: 'Design' },
-    { id: 'gerencial', label: 'Gerencial' },
-    { id: 'manufatura', label: 'Manufatura' },
-    { id: 'metalmecanica', label: 'Metalmecânica' },
-    { id: 'eletronica_e_automacao/metalmecanica/manutencao_e_operacao', label: 'Eletrônica e Automação / Metalmecânica / Manutenção e Operação' },
-    { id: 'seguranca', label: 'Segurança' },
-    { id: 'infraestrutura_de_informacao_e_comunicacao', label: 'Infraestrutura de Informação e Comunicação' },
-    { id: 'infraestrutura_de_informacao_e_comunicacao/gestao_e_seguranca', label: 'Infraestrutura de Informação e Comunicação / Gestão e Segurança' },
-    { id: 'desenvolvimento_de_sistemas', label: 'Desenvolvimento de Sistemas' },
-    { id: 'textil_e_vestuario/design', label: 'Têxtil e Vestuário / Design' },
-  ];
-
   function mudarfiltro() {
     setfiltro(!filtro);
   }
@@ -165,6 +143,9 @@ export default function Solicitacao() {
 
   useEffect(() => {
     fetchProducts();
+    api.getCategorias()
+      .then(setCategories)
+      .catch((error) => console.error('Erro ao carregar áreas tecnológicas:', error));
   }, []);
 
   const fetchProducts = async () => {
@@ -179,7 +160,7 @@ export default function Solicitacao() {
     }
   };
 
-  const selectedItems = useMemo(() => items.filter((item) => item.approved), [items]);
+  const selectedItems = useMemo(() => items.filter((item) => item.approved && item.is_ativo !== false), [items]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -232,6 +213,7 @@ export default function Solicitacao() {
     selectedItems.length > 0 && selectedItems.every((item) => isItemValid(item));
 
   const handleToggleSelect = (id) => {
+    if (items.find((item) => item.id === id)?.is_ativo === false) return;
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id ? { ...item, approved: !item.approved } : item
@@ -291,16 +273,14 @@ export default function Solicitacao() {
       item.code?.toString().toLowerCase().includes(query.toLowerCase()) ||
       item.location?.toLowerCase().includes(query.toLowerCase());
 
-    const matchesArea =
-      !areaTecnica ||
-      normalizarTexto(item.AreaTecnica) === normalizarTexto(areaTecnica);
+    const matchesArea = !areaTecnica || String(item.categoria_id) === areaTecnica;
 
     return matchesQuery && matchesArea;
   });
 
   return (
     <AppShell activeTab="Solicitação">
-    <div className="flex min-h-screen w-full flex-col bg-[#a5a9af]">
+    <div className="flex min-h-full w-full flex-1 flex-col bg-[#EBEAED]">
       
 
       <div className="solicitacao-page flex min-h-full w-full flex-1 flex-col">
@@ -308,8 +288,8 @@ export default function Solicitacao() {
 
         <main className="flex min-w-0 flex-1 flex-col bg-[#EBEAED]">
           <div className="flex w-full items-center gap-2 overflow-x-auto border-b border-[#B7B6B9] bg-[#EBEAED] px-4 pt-4 pb-0 scrollbar-none sm:px-8">
-            <button onClick={() => navigate('/solicitacao/nova')} className="whitespace-nowrap rounded-t-xl border-t border-x border-slate-300 bg-[#CBD0D8] px-6 py-2.5 font-bold text-slate-900 shadow-xs sm:px-12">Solicitar</button>
-            <button onClick={() => navigate('/solicitacao/historico')} className="whitespace-nowrap rounded-t-xl px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-[#CBD0D8]/60 sm:px-12">Histórico</button>
+            <button onClick={() => navigate('/solicitacao/nova')} className="tab-active whitespace-nowrap rounded-t-xl border-t border-x border-slate-300 px-6 py-2.5 shadow-xs sm:px-12">Solicitar</button>
+            <button onClick={() => navigate('/solicitacao/historico')} className="tab-inactive whitespace-nowrap rounded-t-xl px-6 py-2.5 transition-colors sm:px-12">Histórico</button>
           </div>
 
           <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 sm:p-6 md:p-8">
@@ -325,28 +305,36 @@ export default function Solicitacao() {
                   />
 
                   <div ref={filtroRef} className="relative w-full transition-all duration-300 sm:w-auto">
-                    <button onClick={mudarfiltro} className="flex w-35 items-center justify-center gap-2 rounded-xl bg-[#CDCDCD] px-5 py-2.5 font-semibold text-gray-800 transition-colors hover:bg-[#BFBFBF] sm:w-auto" type="button">
+                    <button onClick={mudarfiltro} className="area-filter-control flex w-35 items-center justify-center gap-2 px-5 py-2.5 sm:w-auto" type="button">
                       <ChevronDown className={`h-5 w-5 text-gray-700 transition-transform duration-300 ${filtro ? 'rotate-180' : ''}`} />
-                      <span>Filtro</span>
+                      <span>Área tecnológica</span>
                     </button>
 
                     {filtro && (
-                      <div className="absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden rounded-2xl border border-slate-300 bg-[#D1D5DB]/95 p-1.5 shadow-2xl backdrop-blur-md transition-all">
+                      <div className="area-filter-menu absolute right-0 z-50 mt-2 w-full sm:w-72 overflow-hidden p-1.5 transition-all">
                         <div className="pb-1 mb-1 border-b border-gray-200/80">
-                          <button onClick={() => { setQuery(''); setAreaTecnica(''); setfiltro(false); }} className="flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-sm font-semibold text-red-600 hover:bg-[#BFBFBF]">
+                          <button onClick={() => { setQuery(''); setAreaTecnica(''); setfiltro(false); }} className="area-filter-clear flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-sm font-semibold hover:bg-[#BFBFBF]">
                             <span>Limpar Filtros</span>
                           </button>
                         </div>
                         <div ref={scrollRef} className="flex max-h-48 flex-col gap-0.5 overflow-y-auto pr-1">
-                          {opcoes.map((opcao) => {
-                            const isSelected = areaTecnica === opcao.id;
+                          <button
+                            onClick={() => { setAreaTecnica(''); setfiltro(false); }}
+                            aria-pressed={!areaTecnica}
+                            className="area-filter-option flex w-full items-center justify-between px-3.5 py-2.5 text-sm"
+                          >
+                            Todas as áreas
+                          </button>
+                          {categories.map((opcao) => {
+                            const isSelected = areaTecnica === String(opcao.id);
                             return (
                               <button
                                 key={opcao.id}
-                                onClick={() => { setAreaTecnica(opcao.id); setfiltro(false); }}
-                                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-all ${isSelected ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-[#929292] hover:text-gray-900'}`}
+                                onClick={() => { setAreaTecnica(String(opcao.id)); setfiltro(false); }}
+                                aria-pressed={isSelected}
+                                className="area-filter-option flex w-full items-center justify-between px-3.5 py-2.5 text-sm transition-all"
                               >
-                                <span className="break-words whitespace-normal leading-snug">{opcao.label}</span>
+                                <span className="break-words whitespace-normal leading-snug">{opcao.nome}</span>
                                 {isSelected && <Check className="ml-2 h-4 w-4 shrink-0 text-blue-600" />}
                               </button>
                             );
@@ -372,14 +360,14 @@ export default function Solicitacao() {
                 </button>
               </div>
 
-              <div className="w-full overflow-x-auto rounded-xl border border-slate-700">
-                <div className="min-w-[700px] w-full bg-[#1F2937]">
-                  <div className="grid grid-cols-12 gap-2 border-b border-slate-400 bg-[#D0D5DE] px-4 py-3 text-center text-sm font-bold text-slate-800 rounded-t-xl">
+              <div className="master-grid-table w-full overflow-x-auto rounded-xl border">
+                <div className="min-w-[700px] w-full">
+                  <div className="master-grid-table-header grid grid-cols-12 gap-2 border-b px-4 py-3 text-center text-sm rounded-t-xl">
                     <div className="col-span-1 border-r border-slate-400 pr-2 flex items-center justify-center">ID</div>
                     <div className="col-span-3 border-r border-slate-400 px-2 flex items-center justify-center">Codigo U.F</div>
                     <div className="col-span-3 border-r border-slate-400 px-2 flex items-center justify-start pl-4">Item</div>
                     <div className="col-span-2 border-r border-slate-400 px-2 flex items-center justify-center">Quantidade</div>
-                    <div className="col-span-1 border-r border-slate-400 px-2 flex items-center justify-center">Reserva</div>
+                    <div className="col-span-1 border-r border-slate-400 px-2 flex items-center justify-center">Qtn mínima</div>
                     <div className="col-span-2 px-2 flex items-center justify-center">Unidade</div>
                   </div>
 
@@ -391,8 +379,10 @@ export default function Solicitacao() {
                     filteredItems.map((item, index) => (
                       <div
                         key={item.id}
-                        onClick={() => handleToggleSelect(item.id)}
-                        className={`grid grid-cols-12 gap-2 border-b border-slate-700 px-4 py-3 text-center items-center cursor-pointer transition-colors ${item.approved ? 'bg-blue-900/40 text-blue-200' : 'text-gray-200 hover:bg-slate-800'}`}
+                        onClick={() => item.is_ativo !== false && handleToggleSelect(item.id)}
+                        aria-pressed={item.approved}
+                        aria-disabled={item.is_ativo === false}
+                        className={`master-grid-table-row grid grid-cols-12 gap-2 border-b px-4 py-3 text-center items-center transition-colors ${item.is_ativo === false ? 'is-inactive' : 'cursor-pointer'} ${item.approved ? 'is-selected' : ''}`}
                       >
                         <div className="col-span-1 font-semibold">{index + 1}</div>
                         <div className="col-span-3 font-mono text-xs sm:text-sm">{item.code}</div>
@@ -408,7 +398,10 @@ export default function Solicitacao() {
                           <span className="truncate">{item.location}</span>
                           <button
                             type="button"
-                            className={`flex h-5 w-5 items-center justify-center rounded border ${item.approved ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-400'}`}
+                            aria-pressed={item.approved}
+                            disabled={item.is_ativo === false}
+                            aria-label={item.is_ativo === false ? `${item.name} inativo` : `Selecionar ${item.name}`}
+                            className="selection-toggle flex h-5 w-5 items-center justify-center"
                           >
                             {item.approved && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                           </button>
@@ -435,7 +428,7 @@ export default function Solicitacao() {
           <div className="relative w-full max-w-4xl rounded-2xl border border-slate-700 bg-[#1F2937] p-6 text-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-700 pb-3">
               <h3 className="text-xl font-bold text-white">Confirmar Solicitação</h3>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="cursor-pointer text-gray-400 hover:text-white">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="icon-button cursor-pointer text-gray-400 hover:text-white">
                 <X className="h-6 w-6" />
               </button>
             </div>

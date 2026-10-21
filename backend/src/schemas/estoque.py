@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 class EstoqueSchema(BaseModel):
@@ -22,6 +22,7 @@ class EstoqueReadSchema(BaseModel):
     is_ativo: bool
     localidade: Optional[str]
     dt_validade: Optional[date]
+    dt_entrada: datetime
 
     produto_id: int
     unidade_id: int

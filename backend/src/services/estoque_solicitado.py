@@ -5,7 +5,14 @@ from .erros import ErroEstoqueNaoEncontrado, ErroEstoqueSolicitadoExiste, ErroEs
 
 #region FUNCAO DE CRIA ESTOQUE SOLICITADO
 def criar_estoque_solicitado(session, dados, solicitacao):
-    estoque = session.query(EstoqueModel).filter(EstoqueModel.id == dados.estoque_id).first()
+    estoque = (
+        session.query(EstoqueModel)
+        .filter(
+            EstoqueModel.id == dados.estoque_id,
+            EstoqueModel.is_excluido.is_(False),
+        )
+        .first()
+    )
     if not estoque:
         raise ErroEstoqueNaoEncontrado(session)
     

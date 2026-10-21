@@ -8,6 +8,7 @@ export default function Solicitacao() {
   
   const [query, setQuery] = useState('');
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -19,6 +20,7 @@ export default function Solicitacao() {
   const [filtroLocal, setFiltroLocal] = useState(false);
   const [areaTecnica, setAreaTecnica] = useState('all');
   const [localizacao, setLocalizacao] = useState('all');
+  const [statusItem, setStatusItem] = useState('all');
 
   // Novos estados para os dados da solicitação
   const [nomeSolicitante, setNomeSolicitante] = useState('');
@@ -71,6 +73,9 @@ export default function Solicitacao() {
       }
     }
     loadProducts();
+    api.getCategorias()
+      .then((data) => { if (isMounted) setCategories(data); })
+      .catch((error) => { if (isMounted) setItemLoadError(error.message || 'Não foi possível carregar as áreas tecnológicas.'); });
     const refreshInterval = window.setInterval(() => loadProducts(true), 60_000);
     return () => {
       isMounted = false;
@@ -79,6 +84,7 @@ export default function Solicitacao() {
   }, []);
 
   const handleToggleSelect = async (id, currentApprovedStatus) => {
+    if (items.find((item) => item.id === id)?.is_ativo === false) return;
     const newStatus = !currentApprovedStatus;
 
     setItems((prevItems) =>
@@ -111,11 +117,13 @@ export default function Solicitacao() {
 
     const matchesLocal =
       localizacao === 'all' || item.location?.toLowerCase() === localizacao.toLowerCase();
+    const matchesStatus =
+      statusItem === 'all' || (statusItem === 'active' ? item.is_ativo !== false : item.is_ativo === false);
 
-    return matchesQuery && matchesArea && matchesLocal;
+    return matchesQuery && matchesArea && matchesLocal && matchesStatus;
   });
 
-  const selectedItems = items.filter((item) => item.approved);
+  const selectedItems = items.filter((item) => item.approved && item.is_ativo !== false);
 
   const handleConfirmarSolicitacao = async () => {
     setRequestError('');
@@ -172,11 +180,11 @@ export default function Solicitacao() {
 
   return (
     <AppShell activeTab="Visão Geral">
-      <div className="w-full min-h-screen flex flex-col bg-[#EBEAED]">
+      <div className="flex min-h-full w-full flex-1 flex-col bg-[#EBEAED]">
       {/* Cabeçalho */}
       
 
-      <div className="flex w-full pt-20 min-h-screen">
+      <div className="flex min-h-full w-full flex-1">
         {/* Sidebar */}
         
 
@@ -199,45 +207,45 @@ export default function Solicitacao() {
                   <div className="relative">
                     <button
                       onClick={() => { setFiltroArea(!filtroArea); setFiltroLocal(false); }}
-                      className="flex items-center justify-center gap-2 bg-[#CDCDCD] hover:bg-[#BFBFBF] text-gray-800 font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                      className="area-filter-control flex items-center justify-center gap-2 px-4 py-2.5 transition-colors"
                     >
                       <ChevronDown className="w-5 h-5 text-gray-700" />
                       <span>
-                        Área{areaTecnica !== 'all'
-                          ? `: ${items.find((item) => String(item.categoria_id) === areaTecnica)?.categoria_nome || 'Selecionada'}`
+                        Área tecnológica{areaTecnica !== 'all'
+                          ? `: ${categories.find((category) => String(category.id) === areaTecnica)?.nome || 'Selecionada'}`
                           : ''}
                       </span>
                     </button>
 
                     {filtroArea && (
-                      <div className="absolute left-0 mt-2 w-72 max-h-80 overflow-y-auto bg-[#D1D5DB] border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
+                      <div className="area-filter-menu absolute left-0 mt-2 w-72 max-h-80 overflow-y-auto z-50 p-2 flex flex-col gap-1">
                         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 mb-1">
                           <span className="text-xs font-bold text-gray-600 uppercase">Área Técnica</span>
                           <button
                             onClick={limparFiltros}
-                            className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1 font-semibold"
+                            className="area-filter-clear text-xs hover:text-red-800 flex items-center gap-1 font-semibold"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Limpar
                           </button>
                         </div>
-                        {[...new Map(items
-                          .filter((item) => item.categoria_id != null && item.categoria_nome)
-                          .map((item) => [String(item.categoria_id), item.categoria_nome]))
-                          .entries()]
-                          .map(([id, label]) => (
+                        <button
+                          className="area-filter-option px-3 py-2 text-xs"
+                          aria-pressed={areaTecnica === 'all'}
+                          onClick={() => { setAreaTecnica('all'); setFiltroArea(false); }}
+                        >
+                          Todas as áreas
+                        </button>
+                        {categories.map(({ id, nome }) => (
                           <button
                             key={id}
                             onClick={() => {
-                              setAreaTecnica(id);
+                              setAreaTecnica(String(id));
                               setFiltroArea(false);
                             }}
-                            className={`text-left px-3 py-2 text-xs rounded-lg transition-colors ${
-                              areaTecnica === id
-                                ? 'bg-blue-100 text-blue-900 font-bold'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`}
+                            aria-pressed={areaTecnica === String(id)}
+                            className="area-filter-option px-3 py-2 text-xs transition-colors"
                           >
-                            {label}
+                            {nome}
                           </button>
                         ))}
                       </div>
@@ -248,19 +256,19 @@ export default function Solicitacao() {
                   <div className="relative">
                     <button
                       onClick={() => { setFiltroLocal(!filtroLocal); setFiltroArea(false); }}
-                      className="flex items-center justify-center gap-2 bg-[#CDCDCD] hover:bg-[#BFBFBF] text-gray-800 font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                      className="area-filter-control flex items-center justify-center gap-2 px-4 py-2.5 transition-colors"
                     >
                       <MapPin className="w-4 h-4 text-gray-700" />
                       <span>Local {localizacao !== 'all' && `(${localizacao})`}</span>
                     </button>
 
                     {filtroLocal && (
-                      <div className="absolute left-0 mt-2 w-56 bg-[#D1D5DB] border border-gray-300 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
+                      <div className="area-filter-menu absolute left-0 mt-2 w-56 z-50 p-2 flex flex-col gap-1">
                         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 mb-1">
                           <span className="text-xs font-bold text-gray-600 uppercase">Localidade</span>
                           <button
                             onClick={limparFiltros}
-                            className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1 font-semibold"
+                            className="area-filter-clear text-xs hover:text-red-800 flex items-center gap-1 font-semibold"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Limpar
                           </button>
@@ -272,11 +280,8 @@ export default function Solicitacao() {
                               setLocalizacao(loc.id);
                               setFiltroLocal(false);
                             }}
-                            className={`text-left px-3 py-2 text-xs rounded-lg transition-colors ${
-                              localizacao === loc.id
-                                ? 'bg-blue-100 text-blue-900 font-bold'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`}
+                            aria-pressed={localizacao === loc.id}
+                            className="area-filter-option px-3 py-2 text-xs transition-colors"
                           >
                             {loc.label}
                           </button>
@@ -284,6 +289,17 @@ export default function Solicitacao() {
                       </div>
                     )}
                   </div>
+
+                  <select
+                    value={statusItem}
+                    onChange={(event) => setStatusItem(event.target.value)}
+                    aria-label="Filtrar itens por status"
+                    className="area-filter-control px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Todos os itens</option>
+                    <option value="active">Ativados</option>
+                    <option value="inactive">Desativados</option>
+                  </select>
 
                   <button className="flex items-center justify-center bg-[#1E40AF] hover:bg-[#1E3A8A] text-white p-2.5 rounded-full transition-colors shrink-0">
                     <Search className="w-5 h-5" />
@@ -306,14 +322,14 @@ export default function Solicitacao() {
 
               {/* Tabela dos Produtos */}
               {itemLoadError && <div role="alert" className="text-red-700 font-medium">{itemLoadError}</div>}
-              <div className="overflow-x-auto w-full rounded-xl border-2 border-gray-400">
-                <div className="min-w-[540px] w-full bg-[#d6d6d6]">
-                  <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-[#D0D5DE] font-bold text-black text-sm rounded-t-xl text-center border-b border-slate-400">
+              <div className="master-grid-table overflow-x-auto w-full rounded-xl border border-[#868588]">
+                <div className="min-w-[540px] w-full">
+                  <div className="master-grid-table-header grid grid-cols-12 gap-2 px-4 py-3 text-sm rounded-t-xl text-center border-b">
                     <div className="col-span-1 border-r border-slate-400 pr-2 flex items-center justify-center">ID</div>
                     <div className="col-span-3 border-r border-slate-400 px-2 flex items-center justify-center">Codigo U.F</div>
                     <div className="col-span-3 border-r border-slate-400 px-2 flex items-center justify-center">Item</div>
                     <div className="col-span-2 border-r border-slate-400 px-2 flex items-center justify-center">Quantidade</div>
-                    <div className="col-span-1 border-r border-slate-400 px-2 flex items-center justify-center">Reserva</div>
+                    <div className="col-span-1 border-r border-slate-400 px-2 flex items-center justify-center">Qtn mínima</div>
                     <div className="col-span-2 px-2 flex items-center justify-center">Unidade</div>
                   </div>
 
@@ -326,18 +342,18 @@ export default function Solicitacao() {
                     filteredItems.map((item, index) => (
                       <div
                         key={item.id}
-                        onClick={() => handleToggleSelect(item.id, item.approved)}
-                        className={`grid grid-cols-12 gap-2 px-4 py-3 text-center border-b border-slate-300 items-center cursor-pointer transition-colors ${
-                          item.approved ? 'bg-blue-200/60 text-black font-medium' : 'text-black hover:bg-gray-300'
-                        }`}
+                        onClick={() => item.is_ativo !== false && handleToggleSelect(item.id, item.approved)}
+                        aria-pressed={item.approved}
+                        aria-disabled={item.is_ativo === false}
+                        className={`master-grid-table-row grid grid-cols-12 gap-2 px-4 py-3 text-center border-b items-center transition-colors ${item.is_ativo === false ? 'is-inactive' : 'cursor-pointer'} ${item.approved ? 'is-selected' : ''}`}
                       >
                         <div className="col-span-1 font-semibold">{index + 1}</div>
                         <div className="col-span-3 font-mono text-xs sm:text-sm">{item.code}</div>
-                        <div className="col-span-3 justify-center font-medium flex items-center gap-2">
+                        <div className="col-span-3 min-w-0 justify-center font-medium flex items-center gap-2">
                           {item.image && (
                             <img src={item.image} alt={item.name} className="w-7 h-7 object-contain rounded bg-white p-0.5" />
                           )}
-                          <span className="truncate">{item.name}</span>
+                          <span className="min-w-0 flex-1 truncate text-left" title={item.name}>{item.name}</span>
                         </div>
                         <div className="col-span-2 font-semibold">{item.stock}</div>
                         <div className="col-span-1 flex justify-center">
@@ -347,9 +363,10 @@ export default function Solicitacao() {
                           <span className="truncate">{item.location}</span>
                           <button
                             type="button"
-                            className={`w-5 h-5 rounded border flex items-center justify-center ${
-                              item.approved ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-400'
-                            }`}
+                            aria-pressed={item.approved}
+                            disabled={item.is_ativo === false}
+                            aria-label={item.is_ativo === false ? `${item.name} inativo` : `Selecionar ${item.name}`}
+                            className="selection-toggle flex h-5 w-5 items-center justify-center"
                           >
                             {item.approved && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </button>
@@ -386,7 +403,7 @@ export default function Solicitacao() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-600 hover:text-black transition-colors cursor-pointer"
+                className="icon-button text-gray-600 hover:text-black transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>

@@ -1,14 +1,24 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from os import getenv
+from .models import initialize_database
 from .routes.route_manager import route_manager as rm
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    initialize_database()
+    yield
+
 
 app = FastAPI(
     title="Api para o Sistema de Gerenciamento de Estoque do SENAI",
     description="Esse sistema foi desenvolvido pelos alunos do 3º ano do Ensino Médio, \n  \
     no itinerário de Desenvolvimento de Sistemas de 2026, com o objetivo de gerenciar o estoque da instituição. \n \
     \nPara Mais informação acesse a [Github do projeto](https://github.com/Pedro-D753/Gerenciamento-de-estoque-do-SENAI).",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 # O frontend pode ser executado tanto em localhost quanto em 127.0.0.1.

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..dependencies import get_sesion, jwt_estoquista, jwt_geral
+from ..dependencies import get_sesion, jwt_admin, jwt_estoquista, jwt_geral
 from ..services import estoque, log
 from ..schemas import estoque as BaseEstoque
 from ..models.estoque import EstoqueModel
@@ -36,7 +36,10 @@ async def pega_estoque_minha_unidade(
     registros = (
         session.query(EstoqueModel, UnidadeModel)
         .join(UnidadeModel, UnidadeModel.id == EstoqueModel.unidade_id)
-        .filter(EstoqueModel.unidade_id == usuario.unidade_id)
+        .filter(
+            EstoqueModel.unidade_id == usuario.unidade_id,
+            EstoqueModel.is_excluido.is_(False),
+        )
         .all()
     )
     return [
@@ -48,12 +51,22 @@ async def pega_estoque_minha_unidade(
             "is_ativo": item.is_ativo,
             "localidade": item.localidade,
             "dt_validade": item.dt_validade,
+            "dt_entrada": item.dt_entrada,
             "produto_id": item.produto_id,
             "unidade_id": unidade.id,
             "unidade": {"id": unidade.id, "nome": unidade.nome},
         }
         for item, unidade in registros
     ]
+
+
+@router.get("/excluidos")
+async def pega_estoques_excluidos(
+    _id_user_acao: int = Depends(jwt_admin),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(session=session, acao="ler itens excluídos", id=_id_user_acao, tb_acao="Estoque")
+    return estoque.ler_estoques_excluidos(session)
 
 
 @router.get("/{id}")

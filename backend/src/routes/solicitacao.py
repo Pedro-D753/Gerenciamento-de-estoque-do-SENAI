@@ -14,20 +14,20 @@ router = APIRouter(
 )
 
 @router.get("/")
-async def pega_solicitacao(_id_user_acao: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
+async def pega_solicitacao(id_usuario: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
     """\n Pegas todas as solicitacaos criadas  \
     \n Essa rota tem que está logado."""
-    log.criar_log(session=session, acao="ler solicitacao", id=_id_user_acao, tb_acao="Solicitacao")
+    log.criar_log(session=session, acao="ler solicitacao", id=id_usuario, tb_acao="Solicitacao")
 
-    return solicitacao.ler_solicitacao(session)
+    return solicitacao.ler_solicitacao(session, id_usuario)
 
 @router.get("/{id}")
-async def pega_solicitacao_id(id: int, _id_user_acao: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
+async def pega_solicitacao_id(id: int, id_usuario: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):
     """\n Pegas a solicitacao criada com base no id  \
     \n Essa rota tem que está logado."""
-    log.criar_log(session=session, acao="ler solicitacao pelo id", id=_id_user_acao, tb_acao="Solicitacao")
+    log.criar_log(session=session, acao="ler solicitacao pelo id", id=id_usuario, tb_acao="Solicitacao")
 
-    return solicitacao.ler_solicitacao_id(session, id)
+    return solicitacao.ler_solicitacao_id(session, id, id_usuario)
 
 @router.post("/")
 async def criar_solicitacao(base: BaseSolicitacao.SolicitacaoSchema, _id_user_acao: int = Depends(jwt_geral), session: Session = Depends(get_sesion)):

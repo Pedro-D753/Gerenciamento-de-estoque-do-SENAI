@@ -46,3 +46,6 @@ class ProdutoEstoquistaUpdateSchema(BaseModel):
     preco_unitario: float = Field(ge=0)
     is_ativo: bool
     dt_validade: Optional[date] = None
+
+class ProdutoExclusaoSchema(BaseModel):
+    motivo_exclusao: str = Field(min_length=1, max_length=2000)

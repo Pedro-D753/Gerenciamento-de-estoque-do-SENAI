@@ -85,6 +85,23 @@ async def delete_produto(id: int, _id_user_acao: int = Depends(jwt_admin), sessi
 
     return produto.excluir_produto(session, id)
 
+
+@router.delete("/{id}/estoquista")
+async def delete_produto_estoquista(
+    id: int,
+    base: BaseProduto.ProdutoExclusaoSchema,
+    id_usuario: int = Depends(jwt_estoquista),
+    session: Session = Depends(get_sesion),
+):
+    log.criar_log(
+        session=session,
+        acao=f"Item excluído do estoque da unidade: {id}; motivo: {base.motivo_exclusao}",
+        id=id_usuario,
+        tb_acao="Estoque",
+    )
+    return produto.excluir_produto_estoquista(session, id, id_usuario, base.motivo_exclusao)
+
+
 @router.patch("/{id}")
 async def atualizar_produto(id: int, base: BaseProduto.ProdutoUpdateSchema, _id_user_acao: int = Depends(jwt_admin), session: Session = Depends(get_sesion)):
     """\n Atualizar produto \

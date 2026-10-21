@@ -79,6 +79,10 @@ CREATE TABLE IF NOT EXISTS estoque (
   qtd_minima INT NOT NULL,
   preco_unitario DECIMAL(10,2) NOT NULL,
   is_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  is_excluido BOOLEAN NOT NULL DEFAULT FALSE,
+  motivo_exclusao TEXT NULL,
+  dt_exclusao TIMESTAMP WITH TIME ZONE NULL,
+  dt_entrada TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   localidade VARCHAR(255) NULL,
   dt_validade DATE NULL,
 
@@ -208,4 +212,4 @@ INSERT INTO unidade(nome) VALUES
 ('GAMA');
 
 INSERT INTO "user" (nome, email, senha, matricula, is_admin, is_ativo, unidade_id)
-VALUES ('lucas', 'lucas', '$5$rounds=535000$Zccr/Dd6xfPxn08L$52EqCkheuNKPQ2knIX/rE3UAW0C0KCFWVuBdpJ.vVpD', '1234', true, true, 1);
+VALUES ('joao', 'lucasoctavio229@gmail.com', '123', '1234', true, true, 1);

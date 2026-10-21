@@ -1,17 +1,92 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
-import { Copy, FileText, History, LayoutDashboard, Menu, Package, ScanLine } from 'lucide-react';
+import { Check, ChevronDown, Copy, FileText, History, LayoutDashboard, Menu, Package, ScanLine, Search } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+function AreaFilter({ categories, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selectedCategory = categories.find(category => String(category.id) === value);
+  return <div className="area-filter-select">
+    <button type="button" className="area-filter-control" aria-expanded={open} onClick={() => setOpen(current => !current)}>
+      <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      <span>{selectedCategory?.nome || 'Área tecnológica'}</span>
+    </button>
+    {open && <div className="area-filter-menu">
+      <button type="button" className="area-filter-option" aria-pressed={value === 'all'} onClick={() => { onChange('all'); setOpen(false); }}>
+        Todas as áreas
+      </button>
+      {categories.map(category => (
+        <button
+          type="button"
+          className="area-filter-option"
+          aria-pressed={value === String(category.id)}
+          key={category.id}
+          onClick={() => { onChange(String(category.id)); setOpen(false); }}
+        >
+          <span>{category.nome}</span>
+          {value === String(category.id) && <Check className="h-4 w-4 shrink-0" />}
+        </button>
+      ))}
+    </div>}
+  </div>;
+}
+
 function loginUrl() {
   if (window.location.port === '5174') {
     return `${window.location.protocol}//${window.location.hostname}:5173/login`;
   }
   return '/login';
+}
+
+function formatStockDuration(entryDate) {
+  if (!entryDate) return 'Data de entrada não disponível';
+  const start = new Date(entryDate);
+  const end = new Date();
+  if (!Number.isFinite(start.getTime()) || start > end) return 'Data de entrada inválida';
+
+  function addCalendarMonths(date, amount) {
+    const monthIndex = date.getUTCFullYear() * 12 + date.getUTCMonth() + amount;
+    const year = Math.floor(monthIndex / 12);
+    const month = monthIndex % 12;
+    const day = Math.min(date.getUTCDate(), new Date(Date.UTC(year, month + 1, 0)).getUTCDate());
+    return new Date(Date.UTC(
+      year,
+      month,
+      day,
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ));
+  }
+
+  let totalMonths = (end.getUTCFullYear() - start.getUTCFullYear()) * 12
+    + end.getUTCMonth() - start.getUTCMonth();
+  let calendarAnchor = addCalendarMonths(start, totalMonths);
+  if (calendarAnchor > end) {
+    totalMonths -= 1;
+    calendarAnchor = addCalendarMonths(start, totalMonths);
+  }
+
+  let remaining = end.getTime() - calendarAnchor.getTime();
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+  const days = Math.floor(remaining / 86_400_000);
+  remaining %= 86_400_000;
+  const hours = Math.floor(remaining / 3_600_000);
+  const minutes = Math.floor((remaining % 3_600_000) / 60_000);
+  const parts = [];
+
+  if (years) parts.push(`${years} ${years === 1 ? 'ano' : 'anos'}`);
+  if (months) parts.push(`${months} ${months === 1 ? 'mês' : 'meses'}`);
+  if (days) parts.push(`${days} ${days === 1 ? 'dia' : 'dias'}`);
+  if (!years && !months && !days && hours) parts.push(`${hours} ${hours === 1 ? 'hora' : 'horas'}`);
+  if (!years && !months && minutes) parts.push(`${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`);
+  return parts.length ? parts.join(' e ') : '0 minutos';
 }
 
 function masterUrl() {
@@ -133,9 +208,17 @@ function Dashboard({ setPage }) {
     });
   const recentRequests = pendingRequests.slice(0, 3);
   return <section><div className="title-row"><div><h1>Dashboard de Desempenho</h1></div><button onClick={() => setPage('products')}>Cadastrar item</button></div>{error && <div className="error">{error}</div>}
-    <div className="stats"><article><b>{products.length}</b><span>Produtos cadastrados</span></article><article><b>{pendingRequests.length}</b><span>Solicitações pendentes</span></article><article><b>{low.length}</b><span>Itens em nível crítico</span></article></div>
+    <div className="stats">
+      <button type="button" className="dashboard-stat-card" onClick={() => setPage('products')} aria-label={`Abrir cadastro de itens. ${products.length} produtos cadastrados`}>
+        <b>{products.length}</b><span>Produtos cadastrados</span>
+      </button>
+      <button type="button" className="dashboard-stat-card" onClick={() => setPage('requests')} aria-label={`Abrir solicitações pendentes. ${pendingRequests.length} solicitações pendentes`}>
+        <b>{pendingRequests.length}</b><span>Solicitações pendentes</span>
+      </button>
+      <article><b>{low.length}</b><span>Itens em nível crítico</span></article>
+    </div>
     <div className="panel"><h2>Solicitações recentes</h2>{recentRequests.length ? recentRequests.slice(0, 3).map(item => <div className="request" key={item.id}>
-      <div><strong>#{item.id} · {item.produto_nome || `Estoque #${item.estoque_id}`}</strong><span>{item.solicitante || 'Solicitante não informado'} · {item.qtd_acao} un. · {item.unidade_nome || 'Unidade não informada'}</span><small>{item.obs_solicita || 'Sem observação'}</small></div>
+      <div><strong>#{item.id} · {item.produto_nome || `Estoque #${item.estoque_id}`}</strong><span>{[item.solicitante, `${item.qtd_acao} un.`, item.unidade_nome].filter(Boolean).join(' · ')}</span>{item.obs_solicita && item.obs_solicita.trim().toLowerCase() !== 'não informado' && <small>{item.obs_solicita}</small>}</div>
       <b className={item.tipo}>{item.tipo === 'Separada' ? 'Separada no estoque' : 'Em andamento'}</b>
     </div>) : <p>Nenhuma solicitação em andamento.</p>}</div>
     <div className="panel"><h2>Atenção necessária</h2>{low.length ? low.map(item => <div className="list-row" key={item.id}><span>{item.nome}</span><strong>{item.qtd} disponíveis / mínimo {item.qtd_minima}</strong></div>) : <p>Nenhum item está no nível mínimo ou abaixo dele.</p>}</div>
@@ -144,7 +227,15 @@ function Dashboard({ setPage }) {
 
 function Products({ setPage }) {
   const [items, setItems] = useState([]); const [query, setQuery] = useState(''); const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [selectedArea, setSelectedArea] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [expandedItemId, setExpandedItemId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [deletionReason, setDeletionReason] = useState('');
+  const [deletionError, setDeletionError] = useState('');
+  const [deleting, setDeleting] = useState(false);
   async function load() {
     try {
       setItems(await api.productsForCurrentUnit());
@@ -155,11 +246,39 @@ function Products({ setPage }) {
   }
   useEffect(() => {
     let active = true;
-    api.productsForCurrentUnit().then(data => { if (active) setItems(data); }).catch(e => { if (active) setError(e.message); });
+    Promise.all([api.productsForCurrentUnit(), api.categories()])
+      .then(([products, areas]) => {
+        if (!active) return;
+        setItems(products);
+        setCategories(areas);
+      })
+      .catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
   }, []);
-  async function remove(id) { if (!window.confirm('Excluir este produto?')) return; try { await api.deleteProduct(id); await load(); } catch (e) { setError(e.message); } }
-  const filtered = items.filter(item => `${item.nome} ${item.codigo} ${item.unidade}`.toLowerCase().includes(query.toLowerCase()));
+  async function remove(item) {
+    setDeletingItem(item);
+    setDeletionReason('');
+    setDeletionError('');
+  }
+  async function confirmRemove(event) {
+    event.preventDefault();
+    setDeletionError('');
+    setDeleting(true);
+    try {
+      await api.deleteProduct(deletingItem.id, { motivo_exclusao: deletionReason.trim() });
+      setDeletingItem(null);
+      await load();
+    } catch (e) {
+      setDeletionError(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+  const filtered = items.filter(item => (
+    (selectedArea === 'all' || Number(item.categoria_id) === Number(selectedArea))
+    && (statusFilter === 'all' || (statusFilter === 'active' ? item.is_ativo !== false : item.is_ativo === false))
+    && `${item.nome} ${item.codigo} ${item.unidade}`.toLowerCase().includes(query.toLowerCase())
+  ));
   if (editingItem) {
     return <EditProduct
       item={editingItem}
@@ -167,8 +286,59 @@ function Products({ setPage }) {
       onSaved={async () => { setEditingItem(null); await load(); }}
     />;
   }
-  return <section><div className="title-row"><div><span className="eyebrow">Estoquista</span><h1>Cadastro de itens</h1></div><button onClick={() => setPage('new-product')}>Novo item</button></div><input className="search" placeholder="Buscar item, código ou unidade" value={query} onChange={e => setQuery(e.target.value)} />{error && <div className="error">{error}</div>}
-    <div className="table-wrap"><table><thead><tr><th>Imagem</th><th>ID</th><th>Código U.F.</th><th>Item</th><th>Quantidade</th><th>Reserva</th><th>Unidade</th><th>Ações</th></tr></thead><tbody>{filtered.map(item => <tr key={item.id}><td><ProductImage id={item.id} alt={item.nome} /></td><td>{item.id}</td><td>{item.codigo}</td><td>{item.nome}</td><td>{item.qtd}</td><td>{item.reserva}</td><td>{item.unidade}</td><td><div className="actions"><button className="small" onClick={() => setEditingItem(item)}>Editar</button><button className="danger small" onClick={() => remove(item.id)}>Excluir</button></div></td></tr>)}</tbody></table></div>
+  return <section><div className="title-row"><div><span className="eyebrow">Estoquista</span><h1>Cadastro de itens</h1></div><button onClick={() => setPage('new-product')}>Novo item</button></div><div className="product-filters"><input className="search" placeholder="Buscar item, código ou unidade" value={query} onChange={e => setQuery(e.target.value)} /><AreaFilter categories={categories} value={selectedArea} onChange={setSelectedArea} /><select aria-label="Filtrar itens por status" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Todos os status</option><option value="active">Ativados</option><option value="inactive">Desativados</option></select></div>{error && <div className="error">{error}</div>}
+    <div className="table-wrap stockist-products-table-wrap"><table className="stockist-products-table"><thead><tr><th>Imagem</th><th>ID</th><th>Código U.F.</th><th>Item</th><th>Quantidade</th><th>Qtd. mínima</th><th>Unidade</th><th>Ações</th></tr></thead><tbody>{filtered.length ? filtered.map(item => (
+      <Fragment key={item.id}>
+        <tr className={item.is_ativo === false ? 'product-inactive-row' : ''}>
+          <td><ProductImage id={item.id} alt={item.nome} /></td>
+          <td>{item.id}</td>
+          <td>{item.codigo}</td>
+          <td className="product-name-cell">
+            <button
+              type="button"
+              className="product-name-expand"
+              title={item.nome}
+              aria-expanded={expandedItemId === item.id}
+              onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
+            >
+              {item.nome}
+            </button>
+          </td>
+          <td>{item.qtd}</td>
+          <td>{item.qtd_minima}</td>
+          <td>{item.unidade}</td>
+          <td><div className="actions"><button className="small" onClick={() => setEditingItem(item)}>Editar</button><button className="danger small" onClick={() => remove(item)}>Excluir</button></div></td>
+        </tr>
+        {expandedItemId === item.id && (
+          <tr className={`product-stock-duration-row ${item.is_ativo === false ? 'product-inactive-row' : ''}`}>
+            <td colSpan="8">
+              <div className="product-stock-duration">
+                <strong>Tempo no estoque</strong>
+                <span>{formatStockDuration(item.dt_entrada)}</span>
+                {item.dt_entrada && <small>Desde {new Date(item.dt_entrada).toLocaleString('pt-BR')}</small>}
+              </div>
+            </td>
+          </tr>
+        )}
+      </Fragment>
+    )) : <tr><td colSpan="8">Nenhum item encontrado para os filtros selecionados.</td></tr>}</tbody></table></div>
+    {deletingItem && <div className="request-modal-backdrop" role="presentation">
+      <form className="panel request-modal" onSubmit={confirmRemove} role="dialog" aria-modal="true" aria-labelledby="delete-item-title">
+        <h2 id="delete-item-title">Excluir item do estoque</h2>
+        <p>O item “{deletingItem.nome}” será removido do estoque desta unidade, mas poderá continuar cadastrado em outras unidades.</p>
+        <label>Motivo da exclusão
+          <textarea value={deletionReason} onChange={event => setDeletionReason(event.target.value)} maxLength={2000} required rows={4} />
+        </label>
+        <label>Data da exclusão
+          <input value={new Date().toLocaleDateString('pt-BR')} readOnly aria-readonly="true" />
+        </label>
+        {deletionError && <div className="error" role="alert">{deletionError}</div>}
+        <div className="actions">
+          <button type="button" className="secondary" onClick={() => setDeletingItem(null)} disabled={deleting}>Cancelar</button>
+          <button type="submit" className="danger" disabled={deleting || !deletionReason.trim()}>{deleting ? 'Excluindo...' : 'Confirmar exclusão'}</button>
+        </div>
+      </form>
+    </div>}
   </section>;
 }
 
@@ -185,7 +355,7 @@ function EditProduct({ item, onCancel, onSaved }) {
     codigo_barra: item.codigo || '',
     categoria_id: String(item.categoria_id || ''),
     qtd: String(item.qtd ?? 0),
-    qtd_minima: String(item.reserva ?? 0),
+    qtd_minima: String(item.qtd_minima ?? 0),
     preco_unitario: String(item.preco_unitario ?? 0),
     is_ativo: item.is_ativo !== false,
     dt_validade: item.dt_validade ? String(item.dt_validade).slice(0, 10) : '',
@@ -287,6 +457,10 @@ function UploadPreview({ file }) {
 
 function Requests({ history = false }) {
   const [items, setItems] = useState([]); const [error, setError] = useState('');
+  const [loadedHistory, setLoadedHistory] = useState(null);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [expandedItemId, setExpandedItemId] = useState(null);
   const [rejectingItem, setRejectingItem] = useState(null);
   const [padNote, setPadNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
@@ -305,17 +479,45 @@ function Requests({ history = false }) {
   useEffect(() => {
     let active = true;
     api.requests().then(data => {
-      if (active) setItems(data.filter(item => history
+      if (!active) return;
+      setItems(data.filter(item => history
         ? ['Concluida', 'Retirada', 'Cancelada'].includes(item.tipo)
         : ['EmAndamento', 'Separada'].includes(item.tipo)));
-    }).catch(e => { if (active) setError(e.message); });
+      setError('');
+      setLoadedHistory(history);
+    }).catch(e => {
+      if (!active) return;
+      setError(e.message);
+      setLoadedHistory(history);
+    });
     return () => { active = false; };
   }, [history]);
-  async function update(id, action) {
+  const loading = loadedHistory !== history;
+  const filteredItems = history ? items.filter(item => {
+    const searchText = [
+      item.id,
+      item.produto_codigo,
+      item.produto_nome,
+      item.solicitante,
+      item.unidade_nome,
+      item.obs_solicita,
+      item.obs_pad,
+      item.obs_recusa,
+    ].join(' ').toLowerCase();
+    return (statusFilter === 'all' || item.tipo === statusFilter)
+      && searchText.includes(query.trim().toLowerCase());
+  }) : items;
+  async function update(item, action) {
+    const itemName = item.produto_nome || `estoque #${item.estoque_id}`;
+    const confirmation = action === 'separate'
+      ? `Separar ${item.qtd_acao} un. de "${itemName}"? Essa quantidade será baixada do estoque agora.`
+      : `Confirmar a retirada de ${item.qtd_acao} un. de "${itemName}"?`;
+    if (!window.confirm(confirmation)) return;
+
     setError('');
     try {
-      if (action === 'separate') await api.separateRequest(id);
-      if (action === 'withdraw') await api.withdrawRequest(id);
+      if (action === 'separate') await api.separateRequest(item.id);
+      if (action === 'withdraw') await api.withdrawRequest(item.id);
       await load();
     } catch (e) {
       setError(e.message);
@@ -340,16 +542,73 @@ function Requests({ history = false }) {
       setSaving(false);
     }
   }
+  if (history) {
+    return <section className="stockist-history-page">
+      <div className="stockist-history-tabbar"><div className="stockist-history-tab">Histórico</div></div>
+      <div className="stockist-history-panel">
+        <div className="stockist-history-toolbar">
+          <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)} aria-label="Filtrar histórico por status">
+            <option value="all">Todos os status</option>
+            <option value="Retirada">Retiradas</option>
+            <option value="Cancelada">Canceladas</option>
+          </select>
+          <input
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Buscar no histórico"
+            aria-label="Buscar no histórico"
+          />
+          <Search className="stockist-history-search-icon" aria-hidden="true" />
+        </div>
+        {error && <div role="alert" className="error">{error}</div>}
+        <div className="stockist-history-table-wrap">
+          <div className="stockist-history-table">
+            <div className="stockist-history-header">
+              <span>ID</span><span>Código U.F.</span><span>Item</span><span>Data da solicitação</span><span>Quantidade</span><span>Unidade</span><span>Info</span>
+            </div>
+            {loading ? <div className="stockist-history-empty">Carregando histórico...</div> : filteredItems.length ? filteredItems.map(item => {
+              const isExpanded = expandedItemId === item.id;
+              return <div className="stockist-history-entry" key={item.id}>
+                <button
+                  type="button"
+                  className={`stockist-history-row ${isExpanded ? 'is-expanded' : ''}`}
+                  aria-expanded={isExpanded}
+                  onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                >
+                  <span className="stockist-history-id">{item.id}</span>
+                  <span className="stockist-history-code">{item.produto_codigo || '-'}</span>
+                  <span className="stockist-history-name" title={item.produto_nome || `Estoque #${item.estoque_id}`}>{item.produto_nome || `Estoque #${item.estoque_id}`}</span>
+                  <span>{item.dt_solicitacao ? new Date(item.dt_solicitacao).toLocaleDateString('pt-BR') : '-'}</span>
+                  <span>{item.qtd_acao ?? 0}</span>
+                  <span className="stockist-history-unit">{item.unidade_nome || ''}</span>
+                  <ChevronDown className={`stockist-history-chevron ${isExpanded ? 'is-open' : ''}`} aria-hidden="true" />
+                </button>
+                {isExpanded && <div className="stockist-history-details">
+                  <div><strong>Status</strong><span className={`stockist-history-status ${item.tipo}`}>{item.tipo}</span></div>
+                  <div><strong>Data da solicitação</strong><span>{item.dt_solicitacao ? new Date(item.dt_solicitacao).toLocaleString('pt-BR') : 'Não informada'}</span></div>
+                  {item.tipo !== 'Cancelada' && <div><strong>Data de retirada</strong><span>{item.dt_retirada ? new Date(item.dt_retirada).toLocaleString('pt-BR') : 'Não informada'}</span></div>}
+                  {item.obs_solicita && item.obs_solicita.trim().toLowerCase() !== 'não informado' && <div className="stockist-history-detail-wide"><strong>Observação da solicitação</strong><span>{item.obs_solicita}</span></div>}
+                  {item.obs_pad && <div className="stockist-history-detail-wide"><strong>Observação (PAD)</strong><span>{item.obs_pad}</span></div>}
+                  {item.obs_recusa && <div className="stockist-history-detail-wide"><strong>Motivo da recusa</strong><span>{item.obs_recusa}</span></div>}
+                </div>}
+              </div>;
+            }) : <div className="stockist-history-empty">{error ? 'Não foi possível carregar o histórico.' : 'Nenhuma solicitação encontrada.'}</div>}
+          </div>
+        </div>
+      </div>
+    </section>;
+  }
   return <section>
-    <span className="eyebrow">Estoquista</span><h1>{history ? 'Histórico de solicitações' : 'Gerenciar solicitações'}</h1>
+    <span className="eyebrow">Estoquista</span><h1>Gerenciar solicitações</h1>
     {error && <div role="alert" className="error">{error}</div>}
-    <div className="panel">{items.length ? items.map(item => {
+    <div className="panel">{filteredItems.length ? filteredItems.map(item => {
       const insufficientStock = item.tipo === 'EmAndamento' && Number(item.qtd_acao) > Number(item.estoque_qtd ?? 0);
       return <div className="request" key={item.id}>
         <div>
-          <strong>Solicitação #{item.id} · {item.produto_nome || `Estoque #${item.estoque_id}`}</strong>
-          <span>{item.solicitante || 'Solicitante não informado'} · Quantidade: {item.qtd_acao} · {item.unidade_nome || 'Unidade não informada'}</span>
-          <small>{item.obs_solicita || 'Sem observação'}</small>
+          <strong>Solicitação · {item.produto_nome || `Estoque #${item.estoque_id}`}</strong>
+          <span>{[item.solicitante, `Quantidade: ${item.qtd_acao}`, item.unidade_nome].filter(Boolean).join(' · ')}</span>
+          {item.obs_solicita && item.obs_solicita.trim().toLowerCase() !== 'não informado' && <small>{item.obs_solicita}</small>}
           {!history && item.tipo === 'EmAndamento' && <small className={insufficientStock ? 'text-red-700' : ''}>Disponível no estoque: {item.estoque_qtd ?? 0}{insufficientStock ? ' — quantidade insuficiente para separar' : ''}</small>}
           {item.obs_pad && <small><strong>Observação (PAD):</strong> {item.obs_pad}</small>}
           {item.obs_recusa && <small><strong>Motivo da recusa:</strong> {item.obs_recusa}</small>}
@@ -357,10 +616,10 @@ function Requests({ history = false }) {
         </div>
         {!history && <div className="actions">
           {item.tipo === 'EmAndamento' && <>
-            <button disabled={insufficientStock} title={insufficientStock ? 'Estoque insuficiente para separar' : ''} onClick={() => update(item.id, 'separate')}>Separado no estoque</button>
+            <button disabled={insufficientStock} title={insufficientStock ? 'Estoque insuficiente para separar' : ''} onClick={() => update(item, 'separate')}>Separado no estoque</button>
             <button className="danger" onClick={() => { setRejectingItem(item); setPadNote(''); setRejectReason(''); }}>Recusar</button>
           </>}
-          {item.tipo === 'Separada' && <button onClick={() => update(item.id, 'withdraw')}>Retirado do estoque</button>}
+          {item.tipo === 'Separada' && <button onClick={() => update(item, 'withdraw')}>Retirado do estoque</button>}
         </div>}
         <b className={item.tipo}>{item.tipo}</b>
       </div>;
@@ -465,7 +724,25 @@ function NewProduct({ setPage }) {
       event.target.reset();
     } catch (e) { setError(e.message); } finally { setSaving(false); }
   }
-  return <section><span className="eyebrow">Estoquista</span><h1>Novo item</h1><form className="panel form-grid" onSubmit={submit}>{[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}<label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label><label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label><label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label><label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular. Ele abrirá a câmera:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>O código lido será enviado automaticamente por esta sessão.</small></div>}</label><label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label><label>Categoria<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label><div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>{error && <div className="error">{error}</div>}{success && <div className="success">{success}</div>}</form></section>;
+  return <section className="new-product-page">
+    <div className="new-product-heading">
+      <div><span className="eyebrow">Estoquista · Cadastro</span><h1>Novo item</h1><p>Preencha os dados do item e do estoque desta unidade.</p></div>
+      <button type="button" className="secondary" onClick={() => setPage('products')}>Voltar ao cadastro</button>
+    </div>
+    <form className="panel form-grid new-product-form" onSubmit={submit}>
+      <div className="new-product-form-heading"><h2>Dados do item</h2><p>Informe os dados do produto e do estoque.</p></div>
+      {[['nome', 'Nome do item'], ['descricao', 'Descrição'], ['unidade_medida', 'Unidade de medida']].map(([name, label]) => <label key={name}>{label}<input name={name} value={form[name]} onChange={change} required /></label>)}
+      <label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label>
+      <label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label>
+      <label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label>
+      <label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular. Ele abrirá a câmera:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>O código lido será enviado automaticamente por esta sessão.</small></div>}</label>
+      <label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label>
+      <label>Área<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione a área</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
+      {error && <div role="alert" className="error">{error}</div>}
+      {success && <div className="success">{success}</div>}
+      <div className="form-actions"><button type="button" className="secondary" onClick={() => setPage('products')}>Cancelar</button><button disabled={saving}>{saving ? 'Salvando...' : 'Salvar item'}</button></div>
+    </form>
+  </section>;
 }
 
 function BarcodeScanner() {

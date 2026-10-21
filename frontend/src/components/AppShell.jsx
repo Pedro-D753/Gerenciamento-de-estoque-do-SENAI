@@ -11,7 +11,7 @@ export default function AppShell({ activeTab, children }) {
   } ${activeTab === tab ? 'bg-[#6B84A6] text-white shadow-md' : 'text-white hover:bg-white/25'}`;
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#EBEAED]">
+    <div className="app-shell flex min-h-screen w-full flex-col bg-[#EBEAED]">
       <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center border-b border-[#B7B6B9] bg-white px-4 py-2 md:px-6">
         <img src={`${import.meta.env.BASE_URL}Senai.png`} alt="Logo Senai" className="h-10 w-auto object-contain p-2 md:h-12" />
         <button

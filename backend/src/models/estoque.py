@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Numeric, Date, ForeignKey, Boolean
+from sqlalchemy import Column, String, Integer, Numeric, Date, DateTime, ForeignKey, Boolean, Text, func
 from ..db.postgresql_conection import Base
 from datetime import date
 
@@ -10,6 +10,10 @@ class EstoqueModel(Base):
     qtd_minima = Column(Integer, nullable=False)
     preco_unitario = Column(Numeric(10, 2), nullable=False)
     is_ativo = Column(Boolean, nullable=False, default=1)
+    is_excluido = Column(Boolean, nullable=False, default=False)
+    motivo_exclusao = Column(Text, nullable=True)
+    dt_exclusao = Column(DateTime(timezone=True), nullable=True)
+    dt_entrada = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     localidade = Column(String(255), nullable=True)
     dt_validade = Column(Date, nullable=True)
 
