@@ -1,6 +1,24 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
-import { Check, ChevronDown, Copy, FileText, History, LayoutDashboard, Menu, Package, ScanLine, Search } from 'lucide-react';
+import {
+  AlertCircle,
+  Camera,
+  CameraOff,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Copy,
+  ExternalLink,
+  FileText,
+  History,
+  LayoutDashboard,
+  Menu,
+  Package,
+  RefreshCw,
+  ScanLine,
+  Search,
+  Upload,
+} from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
@@ -646,6 +664,7 @@ function NewProduct({ setPage }) {
   const [saving, setSaving] = useState(false);
   const [scannerLink, setScannerLink] = useState('');
   const [scannerSession, setScannerSession] = useState('');
+  const [scannerTip, setScannerTip] = useState('');
   const [form, setForm] = useState({ nome: '', descricao: '', unidade_medida: 'Unidade', codigo_barra: '', categoria_id: '', qtd: '0', qtd_minima: '0', preco_unitario: '0' });
   useEffect(() => { api.categories().then(setCategories).catch(e => setError(e.message)); }, []);
   useEffect(() => {
@@ -659,6 +678,7 @@ function NewProduct({ setPage }) {
           setForm((current) => ({ ...current, codigo_barra: result.value }));
           setScannerLink('');
           setScannerSession('');
+          setScannerTip('');
           return;
         }
         setTimeout(poll, 1500);
@@ -691,10 +711,12 @@ function NewProduct({ setPage }) {
       setScannerSession(session.session_id);
       setScannerLink(link);
       if (/\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(publicAppUrl)) {
-        setError('O QR Code foi gerado, mas o celular precisa acessar o computador por um endereço da rede. Defina VITE_PUBLIC_APP_URL com o IP do computador, por exemplo http://192.168.0.10:5174.');
+        setScannerTip('Dica: se for acessar pelo celular, certifique-se de que ele está na mesma rede Wi-Fi do computador ou configure VITE_PUBLIC_APP_URL.');
+      } else {
+        setScannerTip('');
       }
     } catch (requestError) {
-      setError(requestError.message || 'Não foi possível gerar o QR Code da câmera.');
+      setError(requestError.message || 'Não foi possível gerar a sessão de leitura.');
     }
   }
   async function copyScannerLink() {
@@ -735,7 +757,23 @@ function NewProduct({ setPage }) {
       <label>Quantidade nesta unidade<input name="qtd" type="number" min="0" value={form.qtd} onChange={change} required /></label>
       <label>Quantidade mínima<input name="qtd_minima" type="number" min="0" value={form.qtd_minima} onChange={change} required /></label>
       <label>Preço unitário<input name="preco_unitario" type="number" min="0" step="0.01" value={form.preco_unitario} onChange={change} required /></label>
-      <label>Código de barras<div className="barcode-field"><input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required /><button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button></div>{scannerLink && <div className="scanner-link-box"><span>Leia este QR Code com o celular. Ele abrirá a câmera:</span><QRCodeSVG value={scannerLink} size={180} level="M" /><code>{scannerLink}</code><button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button><small>O código lido será enviado automaticamente por esta sessão.</small></div>}</label>
+      <label>Código de barras
+        <div className="barcode-field">
+          <input name="codigo_barra" value={form.codigo_barra} onChange={change} inputMode="numeric" required />
+          <button type="button" className="scan-button" onClick={openScanner}><ScanLine size={18} /> Ler com câmera</button>
+        </div>
+        {scannerLink && <div className="scanner-link-box">
+          <span>Leia este QR Code com o celular para abrir a câmera:</span>
+          <QRCodeSVG value={scannerLink} size={180} level="M" />
+          <code>{scannerLink}</code>
+          <div className="scanner-link-box-actions">
+            <button type="button" className="copy-link-button" onClick={copyScannerLink}><Copy size={15} /> Copiar link</button>
+            <a href={scannerLink} target="_blank" rel="noopener noreferrer" className="copy-link-button"><ExternalLink size={15} /> Abrir leitor neste computador</a>
+          </div>
+          {scannerTip && <small className="scanner-network-tip">{scannerTip}</small>}
+          <small>Ao escanear ou informar o código na outra tela, ele será preenchido aqui automaticamente.</small>
+        </div>}
+      </label>
       <label className="image-upload-field">Imagem do produto<input className="image-file-input" name="imagem" type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /><span className="image-upload-button">Escolher foto</span><span className="image-file-name">{imageFile ? imageFile.name : 'Nenhuma foto selecionada'}</span><small className="image-upload-help">JPG, PNG ou WEBP · até 5 MB</small>{imageFile && <UploadPreview key={`${imageFile.name}-${imageFile.size}-${imageFile.lastModified}`} file={imageFile} />}</label>
       <label>Área<select name="categoria_id" value={form.categoria_id} onChange={change} required><option value="">Selecione a área</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
       {error && <div role="alert" className="error">{error}</div>}
@@ -745,50 +783,355 @@ function NewProduct({ setPage }) {
   </section>;
 }
 
+function playSuccessBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.18);
+  } catch {}
+}
+
+function formatCameraError(err) {
+  if (!err) return 'Não foi possível acessar a câmera.';
+  const name = err.name || '';
+  const message = err.message || '';
+  if (name === 'NotFoundError' || message.includes('Requested device not found') || message.includes('not found')) {
+    return 'Nenhuma câmera foi encontrada neste dispositivo. Se você estiver no computador, conecte uma webcam ou use seu celular escaneando o QR Code na tela de cadastro.';
+  }
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || message.includes('Permission denied') || message.includes('Permission dismissed')) {
+    return 'Permissão de acesso à câmera negada. Habilite a permissão de câmera nas configurações do navegador para escanear.';
+  }
+  if (name === 'NotReadableError' || name === 'TrackStartError' || message.includes('Could not start video source')) {
+    return 'A câmera já está sendo usada por outro aplicativo ou aba (como Teams, Meet ou Zoom). Feche outros apps e tente novamente.';
+  }
+  if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+    return 'A câmera do dispositivo não suporta os parâmetros solicitados.';
+  }
+  if (name === 'SecurityError') {
+    return 'Acesso à câmera bloqueado por política de segurança do navegador.';
+  }
+  return message || 'Não foi possível iniciar a câmera.';
+}
+
 function BarcodeScanner() {
   const videoRef = useRef(null);
+  const readerRef = useRef(null);
+  const controlsRef = useRef(null);
   const completedRef = useRef(false);
-  const [error, setError] = useState('');
   const sessionId = new URLSearchParams(window.location.search).get('session');
+
+  const [devices, setDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(true);
+  const [cameraError, setCameraError] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [scannedCode, setScannedCode] = useState('');
+  const [manualCode, setManualCode] = useState('');
+  const [submittingManual, setSubmittingManual] = useState(false);
+  const [processingImage, setProcessingImage] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const handleBarcodeScanned = async (code) => {
+    const value = String(code || '').trim();
+    if (!value || completedRef.current) return;
+    completedRef.current = true;
+    playSuccessBeep();
+    try {
+      controlsRef.current?.stop();
+    } catch {}
+    setCameraActive(false);
+
+    try {
+      await api.submitBarcode(sessionId, value);
+      setScannedCode(value);
+      setSuccess('Código enviado para o cadastro com sucesso!');
+      setError('');
+    } catch (requestError) {
+      completedRef.current = false;
+      setError(requestError.message || 'Não foi possível enviar o código para o cadastro.');
+    }
+  };
+
   useEffect(() => {
-    let reader;
-    let controls;
-    async function start() {
-      try {
-        const videoElement = videoRef.current;
-        if (!videoElement) return;
-        if (!navigator.mediaDevices?.getUserMedia) {
-          throw new Error('A câmera só funciona em uma conexão segura (HTTPS) ou em localhost.');
+    if (!sessionId) return undefined;
+    let active = true;
+    completedRef.current = false;
+
+    async function startCamera() {
+      setCameraLoading(true);
+      setCameraError('');
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        if (active) {
+          setCameraError('A câmera requer uma conexão segura (HTTPS) ou localhost.');
+          setCameraLoading(false);
         }
-        reader = new BrowserMultiFormatReader();
-        controls = await reader.decodeFromConstraints(
-          { video: { facingMode: { ideal: 'environment' } } },
-          videoElement,
-          async (result, scanError) => {
-            if (!result || scanError || completedRef.current) return;
-            const value = result.getText();
-            completedRef.current = true;
+        return;
+      }
+
+      let videoInputs = [];
+      try {
+        const enumerated = await navigator.mediaDevices.enumerateDevices();
+        videoInputs = enumerated.filter(d => d.kind === 'videoinput');
+        if (active) setDevices(videoInputs);
+      } catch (enumErr) {
+        console.warn('Erro ao listar câmeras:', enumErr);
+      }
+
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        if (active) setCameraLoading(false);
+        return;
+      }
+
+      const reader = new BrowserMultiFormatReader();
+      readerRef.current = reader;
+
+      const onScan = (result, scanError) => {
+        if (!result || scanError || completedRef.current) return;
+        const text = result.getText();
+        if (text) handleBarcodeScanned(text);
+      };
+
+      try {
+        let controls;
+        if (selectedDeviceId) {
+          controls = await reader.decodeFromVideoDevice(selectedDeviceId, videoElement, onScan);
+        } else {
+          // Tentativa 1: câmera traseira (ideal para smartphones)
+          try {
+            controls = await reader.decodeFromConstraints(
+              { video: { facingMode: { ideal: 'environment' } } },
+              videoElement,
+              onScan,
+            );
+          } catch (constraintErr) {
+            // Tentativa 2: fallback sem constraints (webcams desktop/notebook sem facingMode)
             try {
-              await api.submitBarcode(sessionId, value);
-              setError('Código enviado para o computador. Você pode fechar esta página.');
-              controls?.stop();
-            } catch (requestError) {
-              completedRef.current = false;
-              setError(requestError.message || 'Não foi possível enviar o código.');
+              controls = await reader.decodeFromConstraints(
+                { video: true },
+                videoElement,
+                onScan,
+              );
+            } catch (fallbackErr) {
+              // Tentativa 3: usar o primeiro dispositivo enumerado
+              if (videoInputs.length > 0 && videoInputs[0].deviceId) {
+                controls = await reader.decodeFromVideoDevice(
+                  videoInputs[0].deviceId,
+                  videoElement,
+                  onScan,
+                );
+              } else {
+                throw constraintErr || fallbackErr;
+              }
             }
-          },
-        );
-      } catch (requestError) {
-        setError(requestError.message || 'Não foi possível acessar a câmera. Verifique a permissão do navegador.');
+          }
+        }
+
+        if (!active) {
+          controls?.stop();
+          return;
+        }
+
+        controlsRef.current = controls;
+        setCameraActive(true);
+        setCameraLoading(false);
+        setCameraError('');
+
+        // Atualiza a lista com os nomes reais após a permissão ser concedida
+        try {
+          const fresh = await navigator.mediaDevices.enumerateDevices();
+          const freshVideo = fresh.filter(d => d.kind === 'videoinput');
+          if (active) setDevices(freshVideo);
+        } catch {}
+      } catch (camErr) {
+        if (!active) return;
+        setCameraActive(false);
+        setCameraLoading(false);
+        setCameraError(formatCameraError(camErr));
       }
     }
-    start();
+
+    startCamera();
+
     return () => {
-      controls?.stop();
-      reader?.reset();
+      active = false;
+      try {
+        controlsRef.current?.stop();
+        readerRef.current?.reset();
+      } catch {}
     };
-  }, [sessionId]);
-  return <main className="scanner-page"><div className="scanner-card"><span className="eyebrow">Leitor de código de barras</span><h1>Aponte a câmera para o código</h1>{sessionId ? <><video ref={videoRef} className="scanner-video" autoPlay muted playsInline /><p className="scanner-help">Permita o acesso à câmera. Ao ler o código, ele será enviado automaticamente para o cadastro.</p></> : <p className="error">Link de sessão inválido.</p>}{error && <p className="error">{error}</p>}</div></main>;
+  }, [sessionId, selectedDeviceId, retryKey]);
+
+  async function handleManualSubmit(event) {
+    event.preventDefault();
+    const code = manualCode.trim();
+    if (!code) {
+      setError('Informe o código de barras antes de enviar.');
+      return;
+    }
+    setSubmittingManual(true);
+    setError('');
+    try {
+      await handleBarcodeScanned(code);
+    } finally {
+      setSubmittingManual(false);
+    }
+  }
+
+  async function handleImageUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setProcessingImage(true);
+    setError('');
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const reader = readerRef.current || new BrowserMultiFormatReader();
+      const result = await reader.decodeFromImageUrl(objectUrl);
+      const text = result?.getText();
+      if (text) {
+        await handleBarcodeScanned(text);
+      } else {
+        setError('Nenhum código de barras identificado nesta imagem. Tente uma foto mais nítida ou digite-o.');
+      }
+    } catch {
+      setError('Não foi possível identificar o código de barras na foto enviada. Verifique a iluminação e foco ou digite o código manualmente.');
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+      setProcessingImage(false);
+      event.target.value = '';
+    }
+  }
+
+  function handleReset() {
+    completedRef.current = false;
+    setSuccess('');
+    setScannedCode('');
+    setError('');
+    setManualCode('');
+    setRetryKey(k => k + 1);
+  }
+
+  return (
+    <main className="scanner-page">
+      <div className="scanner-card">
+        <span className="eyebrow">Leitor de código de barras</span>
+        <h1>Aponte a câmera para o código</h1>
+
+        {!sessionId ? (
+          <div className="error">
+            <p><strong>Link de sessão inválido ou expirado.</strong></p>
+            <p>Por favor, abra a tela de cadastro no computador e clique em &quot;Ler com câmera&quot; para gerar um novo QR Code.</p>
+          </div>
+        ) : success ? (
+          <div className="scanner-success-card">
+            <CheckCircle2 size={48} />
+            <h2>Código enviado com sucesso!</h2>
+            <div className="scanner-success-code">{scannedCode}</div>
+            <p>O código foi preenchido automaticamente no cadastro no computador. Você já pode fechar esta página.</p>
+            <div className="scanner-success-actions">
+              <button type="button" onClick={handleReset}>Ler outro código</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="scanner-video-wrap">
+              <video ref={videoRef} className="scanner-video" autoPlay muted playsInline />
+              {cameraActive && (
+                <>
+                  <div className="scanner-viewfinder" />
+                  <div className="scanner-laser" />
+                </>
+              )}
+              {cameraLoading && (
+                <div className="scanner-video-empty">
+                  <RefreshCw className="animate-spin" size={28} />
+                  <p>Iniciando câmera...</p>
+                </div>
+              )}
+              {!cameraLoading && !cameraActive && (
+                <div className="scanner-video-empty">
+                  <CameraOff size={32} />
+                  <p>{cameraError || 'Câmera indisponível neste dispositivo.'}</p>
+                  <button type="button" className="secondary small" onClick={() => setRetryKey(k => k + 1)}>
+                    <RefreshCw size={14} /> Tentar ligar câmera
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <p className="scanner-help">
+              {cameraActive
+                ? 'Posicione o código de barras na moldura da câmera para leitura automática.'
+                : 'Permita o acesso à câmera para ler automaticamente. Se este aparelho não tiver câmera, use as opções abaixo.'}
+            </p>
+
+            {devices.length > 1 && (
+              <div className="scanner-toolbar">
+                <label className="scanner-camera-label">
+                  Trocar câmera:
+                  <select
+                    className="scanner-camera-select"
+                    value={selectedDeviceId}
+                    onChange={e => setSelectedDeviceId(e.target.value)}
+                  >
+                    <option value="">Automática (Padrão)</option>
+                    {devices.map((device, index) => (
+                      <option key={device.deviceId || index} value={device.deviceId}>
+                        {device.label || `Câmera ${index + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+
+            {error && <div role="alert" className="error">{error}</div>}
+
+            <div className="scanner-alt-card">
+              <h3>Não consegue usar a câmera?</h3>
+              <p>Digite os números do código de barras ou envie uma foto:</p>
+
+              <form className="scanner-manual-form" onSubmit={handleManualSubmit}>
+                <input
+                  className="scanner-manual-input"
+                  value={manualCode}
+                  onChange={e => setManualCode(e.target.value)}
+                  placeholder="Ex: 7891234567890"
+                  inputMode="numeric"
+                />
+                <button type="submit" disabled={submittingManual || !manualCode.trim()}>
+                  {submittingManual ? 'Enviando...' : 'Enviar'}
+                </button>
+              </form>
+
+              <label className="scanner-upload-label">
+                <Upload size={16} />
+                <span>{processingImage ? 'Processando imagem...' : 'Carregar foto do código de barras'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={processingImage}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
 }
 
 function AuthenticatedApp() {
